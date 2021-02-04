@@ -33,7 +33,7 @@ export default class Gameboy {
         this.mbc = new MBC1(this.cartridge);
         break;
     }
- 
+
     //this.mbc = new MBC1(this.cartridge);
     this.con = new Controller(this.mbc);
     this.ppu = new PPU(this.mbc);
@@ -41,7 +41,11 @@ export default class Gameboy {
     this.cpu.pc = 0x100; // cartridge entry point
 
     let td = new TextDecoder();
-    console.log(`${this.cartridge.new_licensee_code_name} ${td.decode(this.cartridge.title)}`);
+    console.log(
+      `${this.cartridge.new_licensee_code_name} ${
+        td.decode(this.cartridge.title)
+      }`,
+    );
 
     this.execute("1");
   }
@@ -50,7 +54,7 @@ export default class Gameboy {
     try {
       let cmds = line.trim().split(" ");
       const cmd = cmds.shift();
-      const param =  cmds.join(" ");
+      const param = cmds.join(" ");
       switch (cmd) {
         case "ramx":
           this.ramx(param);
@@ -93,7 +97,7 @@ export default class Gameboy {
         case "watch":
           this.watch_mem(param);
           break;
-        default: 
+        default:
           this.execute(cmd as string);
           break;
       }
@@ -102,7 +106,7 @@ export default class Gameboy {
       this.ram("");
       this.reg("");
       this.check_mem("");
-      console.log("ERROR:",e);
+      console.log("ERROR:", e);
     }
   }
 
@@ -141,7 +145,7 @@ export default class Gameboy {
     t += `H:${toHex(log.h)} L:${toHex(log.l)}\n`;
     t += `Z:${log.zero} N:${log.negative} `;
     t += `H:${log.half} C:${log.carry}\n`;
-    t += log.code
+    t += log.code;
     //t += "\n";
     return t;
   }
@@ -264,14 +268,18 @@ export default class Gameboy {
     let td = new TextDecoder();
     for (let i = 0; i < this.cpu._serial.length; i++) {
       if (this.cpu._serial[i].length == 0) {
-        console.log(i,"serial empty");
+        console.log(i, "serial empty");
         continue;
       }
-      const bs = this.cpu._serial[i].map(s => s.toString()).reduce((a,b) => a + " " + b);
-      const ss = td.decode(new Uint8Array(this.cpu._serial[i].map(a => a == 10 ? 32 : a)));
+      const bs = this.cpu._serial[i].map((s) => s.toString()).reduce((a, b) =>
+        a + " " + b
+      );
+      const ss = td.decode(
+        new Uint8Array(this.cpu._serial[i].map((a) => a == 10 ? 32 : a)),
+      );
       console.log(i);
-      console.log(bs,"\n");
-      console.log(ss,"\n");
+      console.log(bs, "\n");
+      console.log(ss, "\n");
     }
   }
 
@@ -355,11 +363,10 @@ export default class Gameboy {
     this.printCPULog();
   }
 
-
   check_mem(param: string): boolean {
     let ok = true;
-    const f = (a:number):boolean => a != undefined && a >= 0 && a <= 0xff;
-    const ff = (a:number):boolean => a != undefined && a >= 0 && a <= 0xffff;
+    const f = (a: number): boolean => a != undefined && a >= 0 && a <= 0xff;
+    const ff = (a: number): boolean => a != undefined && a >= 0 && a <= 0xffff;
     for (let i = 0; i < this.mbc.ram.length; i++) {
       let v = this.mbc.ram[i];
       if (!f(v)) {

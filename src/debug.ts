@@ -1,4 +1,4 @@
-import { Reg, toBin, toHex, toI8, showI8 } from "./utils.ts";
+import { Reg, showI8, toBin, toHex, toI8 } from "./utils.ts";
 import MBC, { MBC1, MBC3 } from "./mbc.ts";
 import Cartridge from "./cartridge.ts";
 import CPU, { CPULog } from "./cpu.ts";
@@ -6,7 +6,11 @@ import PPU from "./ppu.ts";
 import Controller from "./controller.ts";
 
 import { readLines } from "https://deno.land/std@0.83.0/io/mod.ts";
-import { rgb24, bgRgb24, yellow } from "https://deno.land/std@0.83.0/fmt/colors.ts";
+import {
+  bgRgb24,
+  rgb24,
+  yellow,
+} from "https://deno.land/std@0.83.0/fmt/colors.ts";
 import { sleep } from "https://deno.land/x/sleep/mod.ts";
 
 const h = (a: number): string => toHex(a);
@@ -30,7 +34,11 @@ export default class Debug {
     this.cpu.pc = 0x100; // cartridge entry point
 
     let td = new TextDecoder();
-    console.log(`${this.cartridge.new_licensee_code_name} ${td.decode(this.cartridge.title)}`);
+    console.log(
+      `${this.cartridge.new_licensee_code_name} ${
+        td.decode(this.cartridge.title)
+      }`,
+    );
 
     this.execute("1");
   }
@@ -45,7 +53,7 @@ export default class Debug {
     try {
       let cmds = line.trim().split(" ");
       const cmd = cmds.shift();
-      const param =  cmds.join(" ");
+      const param = cmds.join(" ");
       switch (cmd) {
         case "ramx":
           this.ramx(param);
@@ -106,7 +114,7 @@ export default class Debug {
         case "watch":
           this.watch_mem(param);
           break;
-        default: 
+        default:
           this.execute(cmd as string);
           break;
       }
@@ -116,7 +124,7 @@ export default class Debug {
       this.ram("");
       this.reg("");
       this.check("");
-      console.log("ERROR:",e);
+      console.log("ERROR:", e);
     }
   }
 
@@ -155,7 +163,7 @@ export default class Debug {
     t += `H:${toHex(log.h)} L:${toHex(log.l)}\n`;
     t += `Z:${log.zero} N:${log.negative} `;
     t += `H:${log.half} C:${log.carry}\n`;
-    t += log.code
+    t += log.code;
     //t += "\n";
     return t;
   }
@@ -306,7 +314,9 @@ export default class Debug {
       if (this.cpu._serial[i].length == 0) {
         continue;
       }
-      const bs = this.cpu._serial[i].map(s => s.toString(16)).reduce((a,b) => a + " " + b);
+      const bs = this.cpu._serial[i].map((s) => s.toString(16)).reduce((a, b) =>
+        a + " " + b
+      );
       const ss = td.decode(new Uint8Array(this.cpu._serial[i]));
       console.log(bs);
       console.log(ss);
@@ -424,7 +434,11 @@ export default class Debug {
     let spriteSize = this.ppu.LCDC_SpriteSize;
     let size = 32 * 32 / (spriteSize == 0 ? 1 : 2);
     for (let i = 0; i < size; i++) {
-      const sprite = this.ppu.getSprite(0x8000, i * (spriteSize == 0 ? 1 : 2), spriteSize);
+      const sprite = this.ppu.getSprite(
+        0x8000,
+        i * (spriteSize == 0 ? 1 : 2),
+        spriteSize,
+      );
       for (let y = 0; y < sprite.length; y++) {
         let yy = oy + y;
         for (let x = 0; x < sprite[y].length; x++) {
@@ -482,14 +496,14 @@ export default class Debug {
   oam(param: string) {
     for (let i = 0; i < 40; i++) {
       let dma = this.mbc.ram[Reg.DMA];
-      console.log(i,h((dma<<8)|4*i), this.ppu.getOAM(i));
+      console.log(i, h((dma << 8) | 4 * i), this.ppu.getOAM(i));
     }
   }
 
   check(param: string): boolean {
     let ok = true;
-    const f = (a:number):boolean => a != undefined && a >= 0 && a <= 0xff;
-    const ff = (a:number):boolean => a != undefined && a >= 0 && a <= 0xffff;
+    const f = (a: number): boolean => a != undefined && a >= 0 && a <= 0xff;
+    const ff = (a: number): boolean => a != undefined && a >= 0 && a <= 0xffff;
     for (let i = 0; i < this.mbc.ram.length; i++) {
       let v = this.mbc.ram[i];
       if (!f(v)) {
@@ -498,35 +512,35 @@ export default class Debug {
       }
     }
     if (!f(this.cpu.a)) {
-      console.log("CHECK Register: A: " , h(this.cpu.a));
+      console.log("CHECK Register: A: ", h(this.cpu.a));
       ok = false;
     }
     if (!f(this.cpu.f)) {
-      console.log("CHECK Register: F: " , h(this.cpu.f));
+      console.log("CHECK Register: F: ", h(this.cpu.f));
       ok = false;
     }
     if (!f(this.cpu.b)) {
-      console.log("CHECK Register: B: " , h(this.cpu.b));
+      console.log("CHECK Register: B: ", h(this.cpu.b));
       ok = false;
     }
     if (!f(this.cpu.c)) {
-      console.log("CHECK Register: C: " , h(this.cpu.c));
+      console.log("CHECK Register: C: ", h(this.cpu.c));
       ok = false;
     }
     if (!f(this.cpu.d)) {
-      console.log("CHECK Register: D: " , h(this.cpu.d));
+      console.log("CHECK Register: D: ", h(this.cpu.d));
       ok = false;
     }
     if (!f(this.cpu.e)) {
-      console.log("CHECK Register: E: " , h(this.cpu.e));
+      console.log("CHECK Register: E: ", h(this.cpu.e));
       ok = false;
     }
     if (!f(this.cpu.h)) {
-      console.log("CHECK Register: H: " , h(this.cpu.h));
+      console.log("CHECK Register: H: ", h(this.cpu.h));
       ok = false;
     }
     if (!f(this.cpu.l)) {
-      console.log("CHECK Register: L: " , h(this.cpu.l));
+      console.log("CHECK Register: L: ", h(this.cpu.l));
       ok = false;
     }
     if (!f(this.cpu.carry)) {
@@ -534,7 +548,7 @@ export default class Debug {
       ok = false;
     }
     if (!f(this.cpu.zero)) {
-      console.log("CHECK Flag: Zero: " , h(this.cpu.zero));
+      console.log("CHECK Flag: Zero: ", h(this.cpu.zero));
       ok = false;
     }
     if (!f(this.cpu.negative)) {

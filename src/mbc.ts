@@ -1,5 +1,5 @@
 import Cartridge from "./cartridge.ts";
-import { U16, U8, Reg } from "./utils.ts";
+import { Reg, U16, U8 } from "./utils.ts";
 
 export default interface MBC {
   cartridge: Cartridge;
@@ -148,8 +148,6 @@ export class MBC3 implements MBC {
       return this.ram[i];
     }
   }
-
-
 
   read(i: U16): U8 {
     if (i <= 0x3fff) {

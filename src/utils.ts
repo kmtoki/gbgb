@@ -71,11 +71,9 @@ export function toI8(u: U8): I8 {
 export function showI8(u: U8): string {
   let o = (u & 0b1111111);
   let s = "";
-  return ((u >> 7 & 1) == 1) 
-    ? "-" + toHex(128 - o)
-    : "+" + toHex(o);
+  return ((u >> 7 & 1) == 1) ? "-" + toHex(128 - o) : "+" + toHex(o);
 }
- 
+
 export function isZero(a: number): U8 {
   return a == 0 ? 1 : 0;
 }

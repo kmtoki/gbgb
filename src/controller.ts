@@ -103,8 +103,8 @@ export default class Controller {
   }
 
   get start() {
-    return (this.m.ram[Reg.JOYP] >> 5 & 1)
-      | (this.m.ram[Reg.JOYP] >> 3 & 1);
+    return (this.m.ram[Reg.JOYP] >> 5 & 1) |
+      (this.m.ram[Reg.JOYP] >> 3 & 1);
   }
   set start(u: U8) {
     if (u == 0) {
@@ -115,8 +115,8 @@ export default class Controller {
   }
 
   get select() {
-    return (this.m.ram[Reg.JOYP] >> 5 & 1)
-      | (this.m.ram[Reg.JOYP] >> 2 & 1);
+    return (this.m.ram[Reg.JOYP] >> 5 & 1) |
+      (this.m.ram[Reg.JOYP] >> 2 & 1);
   }
   set select(u: U8) {
     if (u == 0) {
@@ -127,8 +127,8 @@ export default class Controller {
   }
 
   get b() {
-    return (this.m.ram[Reg.JOYP] >> 5 & 1) 
-      | (this.m.ram[Reg.JOYP] >> 1 & 1);
+    return (this.m.ram[Reg.JOYP] >> 5 & 1) |
+      (this.m.ram[Reg.JOYP] >> 1 & 1);
   }
   set b(u: U8) {
     if (u == 0) {
@@ -139,8 +139,8 @@ export default class Controller {
   }
 
   get a() {
-    return (this.m.ram[Reg.JOYP] >> 5 & 1) 
-      | (this.m.ram[Reg.JOYP] & 1);
+    return (this.m.ram[Reg.JOYP] >> 5 & 1) |
+      (this.m.ram[Reg.JOYP] & 1);
   }
   set a(u: U8) {
     if (u == 0) {
@@ -151,8 +151,8 @@ export default class Controller {
   }
 
   get down() {
-    return (this.m.ram[Reg.JOYP] >> 4 & 1)
-      | (this.m.ram[Reg.JOYP] >> 3 & 1);
+    return (this.m.ram[Reg.JOYP] >> 4 & 1) |
+      (this.m.ram[Reg.JOYP] >> 3 & 1);
   }
   set down(u: U8) {
     if (u == 0) {
@@ -163,8 +163,8 @@ export default class Controller {
   }
 
   get up() {
-    return (this.m.ram[Reg.JOYP] >> 4 & 1)
-      | (this.m.ram[Reg.JOYP] >> 2 & 1);
+    return (this.m.ram[Reg.JOYP] >> 4 & 1) |
+      (this.m.ram[Reg.JOYP] >> 2 & 1);
   }
   set up(u: U8) {
     if (u == 0) {
@@ -175,8 +175,8 @@ export default class Controller {
   }
 
   get left() {
-    return (this.m.ram[Reg.JOYP] >> 4 & 1)
-      | (this.m.ram[Reg.JOYP] >> 1 & 1);
+    return (this.m.ram[Reg.JOYP] >> 4 & 1) |
+      (this.m.ram[Reg.JOYP] >> 1 & 1);
   }
   set left(u: U8) {
     if (u == 0) {
@@ -187,8 +187,8 @@ export default class Controller {
   }
 
   get right() {
-    return (this.m.ram[Reg.JOYP] >> 4 & 1)
-      | (this.m.ram[Reg.JOYP] & 1);
+    return (this.m.ram[Reg.JOYP] >> 4 & 1) |
+      (this.m.ram[Reg.JOYP] & 1);
   }
   set right(u: U8) {
     if (u == 0) {

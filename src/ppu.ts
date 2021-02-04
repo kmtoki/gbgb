@@ -1,5 +1,5 @@
 import MBC from "./mbc.ts";
-import { Reg, toHex, U16, U8, toI8 } from "./utils.ts";
+import { Reg, toHex, toI8, U16, U8 } from "./utils.ts";
 
 export default class PPU {
   m: MBC;
@@ -372,15 +372,16 @@ export default class PPU {
     let bg_addr = this.LCDC_BG_TileMapDispalySelect == 0 ? 0x9800 : 0x9c00;
     for (let i = 0; i < 1024; i++) {
       const sp_addr = this.m.ram[bg_addr++];
-      const sprite = this.LCDC_BG_WindowTileDataSelect == 0 
-          ? this.getSprite(0x9000, toI8(sp_addr))
-          : this.getSprite(0x8000, sp_addr);
+      const sprite = this.LCDC_BG_WindowTileDataSelect == 0
+        ? this.getSprite(0x9000, toI8(sp_addr))
+        : this.getSprite(0x8000, sp_addr);
       for (let yy = 0; yy < 8; yy++) {
         for (let xx = 0; xx < 8; xx++) {
           let yyy = y + yy;
           let xxx = x + xx;
-          this.buffer[yyy][xxx] = 
-            this.LCDC_WindowDisplayPriority == 0 ? 0 : sprite[yy][xx];
+          this.buffer[yyy][xxx] = this.LCDC_WindowDisplayPriority == 0
+            ? 0
+            : sprite[yy][xx];
         }
       }
 
@@ -399,7 +400,7 @@ export default class PPU {
       let w_addr = this.LCDC_WindowTileMapDisplaySelect == 0 ? 0x9800 : 0x9c00;
       for (let i = 0; i < 1024; i++) {
         let sp_addr = this.m.ram[w_addr++];
-        const sprite = this.LCDC_BG_WindowTileDataSelect == 0 
+        const sprite = this.LCDC_BG_WindowTileDataSelect == 0
           ? this.getSprite(0x9000, toI8(sp_addr))
           : this.getSprite(0x8000, sp_addr);
 
@@ -410,8 +411,9 @@ export default class PPU {
             yy = yy >= 256 ? yy - 256 : yy;
             xx = xx >= 256 ? xx - 256 : xx;
             if (sprite[y][x] != 0) {
-              this.buffer[yy][xx] = 
-                this.LCDC_WindowDisplayPriority == 0 ? 0 : sprite[y][x];
+              this.buffer[yy][xx] = this.LCDC_WindowDisplayPriority == 0
+                ? 0
+                : sprite[y][x];
             }
           }
         }
@@ -458,8 +460,8 @@ export default class PPU {
       for (let y = 0; y < sprite.length; y++) {
         for (let x = 0; x < sprite[y].length; x++) {
           if (sprite[y][x] != 0) {
-            this.buffer[oam[0] - ofy + y][oam[1] - ofx + x] = 
-              this.LCDC_SpriteDisplayEnable == 1 ? sprite[y][x] : 0 ;
+            this.buffer[oam[0] - ofy + y][oam[1] - ofx + x] =
+              this.LCDC_SpriteDisplayEnable == 1 ? sprite[y][x] : 0;
           }
         }
       }

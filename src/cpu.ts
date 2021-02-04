@@ -1,5 +1,17 @@
 import MBC from "./mbc.ts";
-import { bitReset, isZero, Reg, toHex, toU16, U16, U8, I8, toI8, showI8, toBin } from "./utils.ts";
+import {
+  bitReset,
+  I8,
+  isZero,
+  Reg,
+  showI8,
+  toBin,
+  toHex,
+  toI8,
+  toU16,
+  U16,
+  U8,
+} from "./utils.ts";
 
 type Operand =
   | "A"
@@ -247,11 +259,11 @@ export default class CPU {
 
   serial() {
     if ((this.m.ram[Reg.SC] >> 7 & 1) == 1) {
-      this._serial_counter += this.clock; 
-      const serial_clock = [512,256,16,8]; // 8192, 16384, 262144, 524288
+      this._serial_counter += this.clock;
+      const serial_clock = [512, 256, 16, 8]; // 8192, 16384, 262144, 524288
       const sc = this.m.ram[Reg.SC] & 0b11;
       if (sc == 0b01 && this._serial_counter >= serial_clock[0]) {
-        this._serial_counter = 0; 
+        this._serial_counter = 0;
         if (this.m.ram[Reg.SB] != 0xff) {
           this._serial[this._serial.length - 1].push(this.m.ram[Reg.SB]);
           this.m.ram[Reg.SC] &= ~0b10000000;
@@ -266,7 +278,7 @@ export default class CPU {
 
   timer() {
     for (let i = 0; i <= this.clock; i += 4) {
-      this._timer_div_counter += 4;//this.clock;
+      this._timer_div_counter += 4; //this.clock;
       this.m.ram[Reg.DIV] = this._timer_div_counter >> 8 & 0xff;
 
       if (this._timer_div_prev != this.m.ram[Reg.DIV]) {
@@ -2448,7 +2460,7 @@ export default class CPU {
     } else {
       this.carry = 0;
     }
- 
+
     this.zero = isZero(this.a);
     this.negative = 1;
     this.pc += 1;
@@ -2923,7 +2935,7 @@ export default class CPU {
   cpl() {
     this.log(`CPL A:${toHex(this.a)}`);
 
-    this.a = this.a ^ 0xff
+    this.a = this.a ^ 0xff;
 
     this.negative = 1;
     this.half = 1;
@@ -2958,7 +2970,7 @@ export default class CPU {
   halt() {
     this.log(`HALT`);
     //if (this.ime == 1) {
-      this._halt = 1;
+    this._halt = 1;
     //}
     this.pc += 1;
     this.clock = 4;
@@ -3012,7 +3024,7 @@ export default class CPU {
     this.log(`RRCA A:${toHex(this.a)}`);
     this.carry = this.a & 1;
     this.a = (this.carry << 7) | (this.a >> 1);
-    this.zero = 0
+    this.zero = 0;
     this.half = 0;
     this.negative = 0;
     this.pc += 1;

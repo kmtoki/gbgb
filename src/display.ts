@@ -50,7 +50,7 @@ export default class Display {
     for (let y = 0; y < this.ppu.buffer.length; y++) {
       for (let x = 0; x < this.ppu.buffer[y].length; x++) {
         this.ctx.fillStyle = this.color(this.ppu.buffer[y][x]);
-        this.ctx.fillRect(x,y,1,1);
+        this.ctx.fillRect(x, y, 1, 1);
       }
     }
 
@@ -59,7 +59,7 @@ export default class Display {
       let scx = this.ppu.SCX;
       for (let x = 0; x < 160; x++) {
         this.ctx.fillStyle = this.color(this.ppu.buffer[scy][scx]);
-        this.ctx.fillRect(270 + x,0 + y,1,1);
+        this.ctx.fillRect(270 + x, 0 + y, 1, 1);
 
         if (scx == 255) {
           scx = 0;
@@ -79,13 +79,17 @@ export default class Display {
     let spriteSize = this.ppu.LCDC_SpriteSize;
     let size = 32 * 32 / (spriteSize == 0 ? 1 : 2);
     for (let i = 0; i < size; i++) {
-      const sprite = this.ppu.getSprite(0x8000, i * (spriteSize == 0 ? 1 : 2), spriteSize);
+      const sprite = this.ppu.getSprite(
+        0x8000,
+        i * (spriteSize == 0 ? 1 : 2),
+        spriteSize,
+      );
       for (let y = 0; y < sprite.length; y++) {
         let yy = oy + y;
         for (let x = 0; x < sprite[y].length; x++) {
           let xx = ox + x;
           this.ctx.fillStyle = this.color(sprite[y][x]);
-          this.ctx.fillRect(450 + xx,0 + yy,1,1);
+          this.ctx.fillRect(450 + xx, 0 + yy, 1, 1);
         }
       }
 
