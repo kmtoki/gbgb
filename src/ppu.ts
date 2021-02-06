@@ -431,37 +431,38 @@ export default class PPU {
   }
 
   renderOAM() {
-    for (let i = 0; i < 40; i++) {
-      let oam = this.getOAM(i);
-      let sprite = this.getSprite(0x8000, oam[2], this.LCDC_SpriteSize);
-      if (oam[0] == 0 || oam[0] >= 160) {
-        continue;
-      }
-      if (oam[1] == 0 || oam[1] >= 168) {
-        continue;
-      }
-      if ((oam[3] >> 6 & 1) == 1) { // y flip
-        sprite = sprite.reverse();
-      }
-      if ((oam[3] >> 5 & 1) == 1) { // x flip
-        sprite = sprite.map((ss) => ss.reverse());
-      }
-      if ((oam[3] >> 7 & 1) == 1) { // Obj or BG Priority. 0 = Obj. 1 = BG
-        continue;
-        //for (let y = 0; y < sprite.length; y++) {
-        //   for (let x = 0; x < sprite[y].length; x++) {
-        //     this.buffer[oam[0]+y][oam[1]+x] = 0;
-        //   }
-        //}
-        //continue;
-      }
-      let ofy = sprite.length >= 8 ? 16 : 8;
-      let ofx = 8;
-      for (let y = 0; y < sprite.length; y++) {
-        for (let x = 0; x < sprite[y].length; x++) {
-          if (sprite[y][x] != 0) {
-            this.buffer[oam[0] - ofy + y][oam[1] - ofx + x] =
-              this.LCDC_SpriteDisplayEnable == 1 ? sprite[y][x] : 0;
+    if (this.LCDC_SpriteDisplayEnable == 1) {
+      for (let i = 0; i < 40; i++) {
+        let oam = this.getOAM(i);
+        let sprite = this.getSprite(0x8000, oam[2], this.LCDC_SpriteSize);
+        if (oam[0] == 0 || oam[0] >= 160) {
+          continue;
+        }
+        if (oam[1] == 0 || oam[1] >= 168) {
+          continue;
+        }
+        if ((oam[3] >> 6 & 1) == 1) { // y flip
+          sprite = sprite.reverse();
+        }
+        if ((oam[3] >> 5 & 1) == 1) { // x flip
+          sprite = sprite.map((ss) => ss.reverse());
+        }
+        if ((oam[3] >> 7 & 1) == 1) { // Obj or BG Priority. 0 = Obj. 1 = BG
+          continue;
+          //for (let y = 0; y < sprite.length; y++) {
+          //   for (let x = 0; x < sprite[y].length; x++) {
+          //     this.buffer[oam[0]+y][oam[1]+x] = 0;
+          //   }
+          //}
+          //continue;
+        }
+        let oy = oam[0] - 16 < 0 ? oam[0] : oam[0] - 16;
+        let ox = oam[1] - 8 < 0 ? oam[1] : oam[1] - 8;
+        for (let y = 0; y < sprite.length; y++) {
+          for (let x = 0; x < sprite[y].length; x++) {
+            if (sprite[y][x] != 0) {
+              this.buffer[oy + y][ox + x] = sprite[y][x];
+            }
           }
         }
       }

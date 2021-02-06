@@ -34,16 +34,17 @@ class WebView {
   }
 
   addContorller() {
+    setInterval(() => this.gb.con.releaseAll(),10);
     document.addEventListener("keydown", (event) => {
       //this.gb.con.releaseAll();
-      if (!event.repeat) {
+      //if (!event.repeat) {
         this.gb.con.press(event.key);
-      }
+      //}
     });
     document.addEventListener("keyup", (event) => {
-      if (!event.repeat) {
+      //if (!event.repeat) {
         this.gb.con.release(event.key);
-      }
+      //}
     });
   }
 

@@ -5,7 +5,7 @@ export default interface MBC {
   cartridge: Cartridge;
   ram: number[];
   ramx: number[];
-  bank: number;
+  rom_bank: number;
 
   readWithBank(b: number, i: U16): U8;
   read(i: U16): U8;
@@ -16,7 +16,7 @@ export class MBC1 implements MBC {
   cartridge: Cartridge;
   ram: number[];
   ramx: number[];
-  bank: number;
+  rom_bank: number;
   bank1: number;
   bank2: number;
 
@@ -24,7 +24,7 @@ export class MBC1 implements MBC {
     this.cartridge = c;
     this.bank1 = 1;
     this.bank2 = 0;
-    this.bank = (this.bank2 << 19) | (this.bank1 << 14);
+    this.rom_bank = (this.bank2 << 19) | (this.bank1 << 14);
     this.ram = new Array(0x10000);
     for (let i = 0; i < this.ram.length; i++) {
       this.ram[i] = 0;
@@ -68,7 +68,7 @@ export class MBC1 implements MBC {
       //b1 = b1 == 0 ? 1 : (b1 & 0b11111);
       //let ii = (b2 << 19) | (b1 << 14) | (i - 0x4000);
       //return this.cartridge.rom[ii];
-      return this.cartridge.rom[this.bank | (i - 0x4000)];
+      return this.cartridge.rom[this.rom_bank | (i - 0x4000)];
     } else if (i >= 0xa000 && i <= 0xbfff) {
       let b = this.ram[0];
       if ((b & 0b11) == 0) {
@@ -89,11 +89,11 @@ export class MBC1 implements MBC {
     } else if (i >= 0x2000 && i <= 0x3fff) {
       this.ram[i] = v == 0 ? 1 : v & 0b11111;
       this.bank1 = this.ram[i];
-      this.bank = (this.bank2 << 19) | (this.bank1 << 14);
+      this.rom_bank = (this.bank2 << 19) | (this.bank1 << 14);
     } else if (i >= 0x4000 && i <= 0x5fff) {
       this.ram[i] = v;
       this.bank2 = v;
-      this.bank = (this.bank2 << 19) | (this.bank1 << 14);
+      this.rom_bank = (this.bank2 << 19) | (this.bank1 << 14);
     } else if (i >= 0xa000 && i <= 0xbfff) {
       let b = this.ram[0] & 0b11;
       if ((b & 0b11) == 0) {
@@ -118,11 +118,17 @@ export class MBC3 implements MBC {
   cartridge: Cartridge;
   ram: number[];
   ramx: number[];
-  bank: number;
+  rom_bank: number;
+  ram_bank: number;
+  rtc_read: boolean;
+  rtc_type: number;
 
   constructor(c: Cartridge) {
     this.cartridge = c;
-    this.bank = 1;
+    this.rom_bank = 1;
+    this.ram_bank = 0;
+    this.rtc_read = false;
+    this.rtc_type = 0x8;
     this.ram = new Array(0x10000);
     for (let i = 0; i < this.ram.length; i++) {
       this.ram[i] = 0;
@@ -137,12 +143,10 @@ export class MBC3 implements MBC {
     if (i <= 0x3fff) {
       return this.cartridge.rom[i];
     } else if (i >= 0x4000 && i <= 0x7fff) {
-      let ii = this.bank | (i - 0x4000);
+      let ii = this.rom_bank | (i - 0x4000);
       return this.cartridge.rom[ii];
     } else if (i >= 0xa000 && i <= 0xbfff) {
-      let b = this.ram[i - 0x6000] & 3;
-      b = b ? 1 : b;
-      let ii = 0xc000 * b + (i - 0xa000);
+      let ii = 0xc000 * this.ram_bank + (i - 0xa000);
       return this.ramx[ii];
     } else {
       return this.ram[i];
@@ -153,13 +157,23 @@ export class MBC3 implements MBC {
     if (i <= 0x3fff) {
       return this.cartridge.rom[i];
     } else if (i >= 0x4000 && i <= 0x7fff) {
-      let ii = this.bank | (i - 0x4000);
+      let ii = this.rom_bank | (i - 0x4000);
       return this.cartridge.rom[ii];
     } else if (i >= 0xa000 && i <= 0xbfff) {
-      let b = this.ram[i - 0x6000] & 3;
-      b = b ? 1 : b;
-      let ii = 0xc000 * b + (i - 0xa000);
-      return this.ramx[ii];
+      if (this.rtc_read) {
+         this.rtc_read = false;
+         switch (this.rtc_type) {
+           case 0x8: return 1;
+           case 0x9: return 2;
+           case 0xa: return 3;
+           case 0xb: return 4;
+           case 0xc: return 5;
+           default: return 6;
+         }
+      } else {
+        let ii = 0xc000 * this.ram_bank + (i - 0xa000);
+        return this.ramx[ii];
+      }
     } else {
       return this.ram[i];
     }
@@ -170,12 +184,18 @@ export class MBC3 implements MBC {
       this.ram[i] = v;
     } else if (i >= 0x2000 && i <= 0x3fff) {
       this.ram[i] = v == 0 ? 1 : v;
-      this.bank = this.ram[i] << 14;
+      this.rom_bank = this.ram[i] << 14;
     } else if (i >= 0x4000 && i <= 0x5fff) {
       // RAM bank
+      if (v >= 0 && v <= 3) {
+        this.ram_bank = v;
+      } else if (v >= 0x8 && v <= 0xc) {
+        this.rtc_read = true;
+        this.rtc_type = v;
+      }
       this.ram[i] = v;
     } else if (i >= 0xa000 && i <= 0xbfff) {
-      let b = this.ram[i - 0xa000] & 3;
+      let b = this.ram[i - 0x6000] & 3;
       b = b == 0 ? 1 : b;
       let ii = 0xc000 * b + (i - 0xa000);
       this.ramx[i] = v;

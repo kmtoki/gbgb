@@ -36,7 +36,7 @@ type Operand =
 
 export type CPULog = {
   _execute_counter: number;
-  bank: number;
+  rom_bank: number;
   code: string;
   a: U8;
   f: U8;
@@ -190,7 +190,7 @@ export default class CPU {
   log(instr: string) {
     const data = {
       _execute_counter: this._execute_counter,
-      bank: this.m.bank,
+      rom_bank: this.m.rom_bank,
       code: instr,
       zero: this.zero,
       negative: this.negative,
@@ -303,7 +303,7 @@ export default class CPU {
         //this._timer_control_counter += 4;//this.clock;
         const tac_clock = [1024, 16, 64, 256];
         const tac_select_clock = tac_clock[this.m.ram[Reg.TAC] & 0b11];
-        if (this._timer_div_counter >= tac_select_clock) {
+        if (this._timer_div_counter % tac_select_clock == 0) {
           //this._timer_control_counter -= tac_select_clock;
           this.m.ram[Reg.TIMA] += 1;
           if (this.m.ram[Reg.TIMA] >= 0xff) {

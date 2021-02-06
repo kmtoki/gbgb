@@ -98,8 +98,8 @@ export default class Controller {
   }
 
   releaseAll() {
-    this.m.ram[Reg.JOYP] = 0b1111;
-    this.m.ram[Reg.IF] |= 0b10000;
+    this.m.ram[Reg.JOYP] = 0b111111;
+    //this.m.ram[Reg.IF] |= 0b10000;
   }
 
   get start() {
