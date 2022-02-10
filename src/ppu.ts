@@ -489,7 +489,7 @@ export default class PPU {
   }
 
   execute(n: number) {
-    n = n / 4; // ppu cycle = cpu clock / 4
+    n = n / 4; // ?? -> ppu cycle = cpu instruction clock / 4
     this.cycle += n;
     this.cycle_line += n;
     //console.log(this.cycle,this.cycle_line,this.LY);

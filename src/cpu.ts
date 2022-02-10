@@ -276,11 +276,55 @@ export default class CPU {
     }
   }
 
-  timer() {
-    for (let i = 0; i <= this.clock; i += 4) {
-      this._timer_div_counter += 4; //this.clock;
-      this.m.ram[Reg.DIV] = this._timer_div_counter >> 8 & 0xff;
+  //timer() {
+  //  for (let i = 0; i <= this.clock; i += 4) {
+  //    this._timer_div_counter += 4; //this.clock;
+  //    this.m.ram[Reg.DIV] = this._timer_div_counter >> 8 & 0xff;
 
+  //    if (this._timer_div_prev != this.m.ram[Reg.DIV]) {
+  //      this._timer_div_counter = 0;
+  //      this._timer_control_counter = 0;
+  //      this.m.ram[Reg.DIV] = 0;
+  //      this.m.ram[Reg.TIMA] = 0; //this.m.ram[Reg.TMA];
+  //      if ((this.m.ram[Reg.TAC] >> 2 & 1) == 1) {
+  //        this.m.ram[Reg.TIMA] += 1;
+  //      }
+  //    }
+
+  //    if (this._timer_div_counter >= 0xffff) {
+  //      this._timer_div_counter -= 0xffff;
+  //      //this.m.ram[Reg.DIV] += 1;
+  //      //if (this.m.ram[Reg.DIV] == 0xff) {
+  //      //  this.m.ram[Reg.DIV] = 0;
+  //      //}
+  //    }
+
+  //    if ((this.m.ram[Reg.TAC] >> 2 & 1) == 1) {
+  //      //this._timer_control_counter += 4;//this.clock;
+  //      const tac_clock = [1024, 16, 64, 256];
+  //      const tac_select_clock = tac_clock[this.m.ram[Reg.TAC] & 0b11];
+  //      if (this._timer_div_counter % tac_select_clock == 0) {
+  //        //this._timer_control_counter -= tac_select_clock;
+  //        this.m.ram[Reg.TIMA] += 1;
+  //        if (this.m.ram[Reg.TIMA] >= 0xff) {
+  //          this.m.ram[Reg.TIMA] = this.m.ram[Reg.TMA];
+  //          this.m.ram[Reg.IF] |= 0b100;
+  //          this._halt = 0;
+  //          this.log(`TIMER IF ON ${this.m.ram[Reg.TAC]}`);
+  //        }
+  //      }
+  //    }
+  //  }
+  //}
+
+  timer() {
+    if (this._stop == 1) {
+      this.m.ram[Reg.DIV] = 0;
+      return;
+    }
+
+    for (let i = 0; i <= this.clock; i += 1) {
+      // when write DIV, reset
       if (this._timer_div_prev != this.m.ram[Reg.DIV]) {
         this._timer_div_counter = 0;
         this._timer_control_counter = 0;
@@ -291,20 +335,24 @@ export default class CPU {
         }
       }
 
-      if (this._timer_div_counter >= 0xffff) {
-        this._timer_div_counter -= 0xffff;
-        //this.m.ram[Reg.DIV] += 1;
-        //if (this.m.ram[Reg.DIV] == 0xff) {
-        //  this.m.ram[Reg.DIV] = 0;
-        //}
+      // DIV
+      this._timer_div_counter += 1;
+      if (this._timer_div_counter >= 256) { // cpu freq(4194304) / timer freq(16348)
+        this._timer_div_counter = 0;
+        this.m.ram[Reg.DIV] += 1;
+        if (this.m.ram[Reg.DIV] >= 0xff) {
+          this.m.ram[Reg.DIV] = 0;
+        }
+        this._timer_div_prev = this.m.ram[Reg.DIV];
       }
 
-      if ((this.m.ram[Reg.TAC] >> 2 & 1) == 1) {
-        //this._timer_control_counter += 4;//this.clock;
+      // TIMA TAC TMA
+      if ((this.m.ram[Reg.TAC] >> 2 & 1) == 1) { // timer enable on TAC
+        this._timer_control_counter += 1;
         const tac_clock = [1024, 16, 64, 256];
         const tac_select_clock = tac_clock[this.m.ram[Reg.TAC] & 0b11];
-        if (this._timer_div_counter % tac_select_clock == 0) {
-          //this._timer_control_counter -= tac_select_clock;
+        if (this._timer_control_counter >= tac_select_clock) {
+          this._timer_control_counter = 0;
           this.m.ram[Reg.TIMA] += 1;
           if (this.m.ram[Reg.TIMA] >= 0xff) {
             this.m.ram[Reg.TIMA] = this.m.ram[Reg.TMA];

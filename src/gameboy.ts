@@ -162,7 +162,7 @@ export default class Gameboy {
       this.cpu.execute();
       this.ppu.execute(this.cpu.clock);
     }
-    this.printCPULog();
+    //this.printCPULog();
   }
 
   execute_one_frame(param: string) {

@@ -1,5 +1,6 @@
 import Gameboy from "./gameboy.ts";
-import ROM from "./rom.ts";
+import ROM from "./rom2.ts";
+import { Reg, toBin } from "./utils.ts";
 
 class WebView {
   gb: Gameboy;
@@ -7,39 +8,62 @@ class WebView {
   ctx: CanvasRenderingContext2D;
   execute_clock: number;
   execute_timer: number;
+  execute_timer_acc: number;
   render_timer: number;
   execute_id: number;
   render_id: number;
+  buffer: number[][];
 
   constructor(gb: Gameboy) {
     this.gb = gb;
 
     this.canvas = <HTMLCanvasElement> document.getElementById("canvas")!;
-    this.canvas.height = document.body.clientHeight;
-    this.canvas.width = document.body.clientWidth;
+    this.canvas.height = document.body.clientHeight*0.96;
+    this.canvas.width = document.body.clientWidth*0.98;
 
     this.ctx = this.canvas.getContext("2d")!;
     this.ctx.fillStyle = "black";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-    //this.execute_clock = 300000;
-    this.execute_clock = 70394 * 4;
-    this.execute_timer = 10;
-    //this.render_timer = (1000 / 60) * 1;
-    this.render_timer = 100;
+    this.execute_clock = 4194304 / (60 * 4); 
+    this.execute_timer = 1000 / 60;
+    this.execute_timer_acc = 1;
+    this.render_timer = 1000 / 60;
+    //this.render_timer = 100;
     this.execute_id = 0;
     this.render_id = 1;
+
+    this.buffer = new Array(1024);
+    for (let i = 0; i < this.buffer.length; i++) {
+      this.buffer[i] = new Array(1024);
+      for (let j = 0; j < this.buffer[i].length; j++) {
+        this.buffer[i][j] = 0;
+      }
+    }
 
     this.addContorller();
   }
 
   addContorller() {
-    setInterval(() => this.gb.con.releaseAll(),10);
+    //setInterval(() => this.gb.con.releaseAll(),10);
     document.addEventListener("keydown", (event) => {
       //this.gb.con.releaseAll();
       //if (!event.repeat) {
-        this.gb.con.press(event.key);
+      //  this.gb.con.press(event.key);
       //}
+      //
+      if (event.key == "1" && !event.repeat) {
+        this.execute_timer_acc *= 2;
+        this.execute(this.execute_timer / this.execute_timer_acc, this.execute_clock);
+      }
+      else if (event.key == "2" && !event.repeat) {
+        this.execute_timer_acc /= 2;
+        this.execute(this.execute_timer / this.execute_timer_acc, this.execute_clock);
+      }
+      else {
+      }
+
+      this.gb.con.press(event.key);
     });
     document.addEventListener("keyup", (event) => {
       //if (!event.repeat) {
@@ -66,8 +90,13 @@ class WebView {
     this.ctx.strokeRect(10, 10, 256, 256);
     for (let y = 0; y < this.gb.ppu.buffer.length; y++) {
       for (let x = 0; x < this.gb.ppu.buffer[y].length; x++) {
-        this.ctx.fillStyle = this.color(this.gb.ppu.buffer[y][x]);
-        this.ctx.fillRect(10 + x, 10 + y, 1, 1);
+        let bx = 10 + x;
+        let by = 10 + y;
+        if (this.buffer[by][bx] != this.gb.ppu.buffer[y][x]) {
+          this.buffer[by][bx] = this.gb.ppu.buffer[y][x];
+          this.ctx.fillStyle = this.color(this.gb.ppu.buffer[y][x]);
+          this.ctx.fillRect(bx,by,1,1);
+        }
       }
     }
 
@@ -78,8 +107,13 @@ class WebView {
     for (let y = 0; y < 144; y++) {
       let scx = this.gb.ppu.SCX;
       for (let x = 0; x < 160; x++) {
-        this.ctx.fillStyle = this.color(this.gb.ppu.buffer[scy][scx]);
-        this.ctx.fillRect(270 + x, 10 + y, 1, 1);
+        let bx = 270 + x;
+        let by = 10 + y;
+        if (this.buffer[by][bx] != this.gb.ppu.buffer[scy][scx]) {
+          this.buffer[by][bx] = this.gb.ppu.buffer[scy][scx];
+          this.ctx.fillStyle = this.color(this.gb.ppu.buffer[scy][scx]);
+          this.ctx.fillRect(bx,by,1,1);
+        }
 
         if (scx >= 255) {
           scx = 0;
@@ -114,8 +148,14 @@ class WebView {
         let yy = oy + y;
         for (let x = 0; x < sprite[y].length; x++) {
           let xx = ox + x;
-          this.ctx.fillStyle = this.color(sprite[y][x]);
-          this.ctx.fillRect(435 + xx, 10 + yy, 1, 1);
+          let bx = 435 + xx;
+          let by = 10 + yy;
+          if (this.buffer[by][bx] != sprite[y][x]) {
+            this.buffer[by][bx] = sprite[y][x];
+            this.ctx.fillStyle = this.color(sprite[y][x]);
+            this.ctx.fillRect(bx,by,1,1);
+          }
+ 
         }
       }
 

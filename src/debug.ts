@@ -134,10 +134,10 @@ export default class Debug {
       return "CPU LOG UNDEFINED";
     }
     let t = `--- ${yellow(log._execute_counter.toString())}\n`;
-    t += `Bank:${toHex(log.bank)}\n`;
+    t += `Bank:${toHex(log.rom_bank)}\n`;
     t += `PC:${toHex(log.pc, 1)} `;
     for (let i = -4; i <= 18; i++) {
-      let h = this.mbc.readWithBank(log.bank, log.pc + i);
+      let h = this.mbc.readWithBank(log.rom_bank, log.pc + i);
       t += h == undefined
         ? "??"
         : i == 0
@@ -270,7 +270,7 @@ export default class Debug {
 
   reg(param: string) {
     let t = "";
-    t += `MBC Bank:${toHex(this.mbc.bank)}\n`;
+    t += `MBC Bank:${toHex(this.mbc.rom_bank)}\n`;
     t += `JOYP:0b${toBin(this.mbc.ram[Reg.JOYP])}\n`;
     t += `SB:${toHex(this.mbc.ram[Reg.SB])} `;
     t += `SC:0b${toBin(this.mbc.ram[Reg.SC])}\n`;
