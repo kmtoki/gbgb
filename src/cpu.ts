@@ -96,7 +96,7 @@ export default class CPU {
     this.l = 0;
     this.sp = 0xfffe;
     this.pc = 0;
-    this.ime = 0;
+    this.ime = 1;
     this.clock = 0;
     this._halt = 0;
     this._stop = 0;
@@ -337,10 +337,10 @@ export default class CPU {
 
       // DIV
       this._timer_div_counter += 1;
-      if (this._timer_div_counter >= 256) { // cpu freq(4194304) / timer freq(16348)
+      if (this._timer_div_counter > 0xff) { // cpu freq(4194304) / timer freq(16348)
         this._timer_div_counter = 0;
         this.m.ram[Reg.DIV] += 1;
-        if (this.m.ram[Reg.DIV] >= 0xff) {
+        if (this.m.ram[Reg.DIV] > 0xff) {
           this.m.ram[Reg.DIV] = 0;
         }
         this._timer_div_prev = this.m.ram[Reg.DIV];
@@ -354,7 +354,7 @@ export default class CPU {
         if (this._timer_control_counter >= tac_select_clock) {
           this._timer_control_counter = 0;
           this.m.ram[Reg.TIMA] += 1;
-          if (this.m.ram[Reg.TIMA] >= 0xff) {
+          if (this.m.ram[Reg.TIMA] > 0xff) {
             this.m.ram[Reg.TIMA] = this.m.ram[Reg.TMA];
             this.m.ram[Reg.IF] |= 0b100;
             this._halt = 0;

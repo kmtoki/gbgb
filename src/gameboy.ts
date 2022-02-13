@@ -1,4 +1,4 @@
-import { Reg, toBin, toHex } from "./utils.ts";
+import { Reg, toBin, toHex, U8 } from "./utils.ts";
 import MBC, { MBC1, MBC3 } from "./mbc.ts";
 import Cartridge from "./cartridge.ts";
 import CPU, { CPULog } from "./cpu.ts";
@@ -14,6 +14,7 @@ export default class Gameboy {
   cpu: CPU;
   ppu: PPU;
   con: Controller;
+  contoller_buffer: U8;
 
   constructor(rom: Uint8Array) {
     this.cartridge = new Cartridge(rom);
@@ -39,6 +40,7 @@ export default class Gameboy {
     this.ppu = new PPU(this.mbc);
     this.cpu = new CPU(this.mbc);
     this.cpu.pc = 0x100; // cartridge entry point
+    this.contoller_buffer = 0b111111;
 
     let td = new TextDecoder();
     console.log(
@@ -158,9 +160,16 @@ export default class Gameboy {
   execute(param: string) {
     let i = parseInt(param);
     i = Number.isNaN(i) ? 1 : i;
+    let con = 0;
     while (0 < i--) {
       this.cpu.execute();
       this.ppu.execute(this.cpu.clock);
+      let j = this.mbc.ram[Reg.JOYP];
+      if (j == 0b010000 || j == 0b100000) {
+        this.contoller_buffer = j;
+      } else {
+        this.mbc.ram[Reg.JOYP] = this.contoller_buffer;
+      }
     }
     //this.printCPULog();
   }

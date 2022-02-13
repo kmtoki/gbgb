@@ -63,11 +63,19 @@ class WebView {
       else {
       }
 
-      this.gb.con.press(event.key);
+      //if (!event.repeat) {
+        this.gb.con.press(event.key);
+        this.gb.contoller_buffer = this.gb.mbc.ram[Reg.JOYP];
+      //}
+      //console.log("IF: ",toBin(this.gb.mbc.ram[Reg.IF]));
+      //console.log("IE: ",toBin(this.gb.mbc.ram[Reg.IE]));
+      //console.log("JOYP: ",toBin(this.gb.mbc.ram[Reg.JOYP]));
+      //console.log("TIMER",toBin(this.gb.mbc.ram[Reg.TAC]),toBin(this.gb.mbc.ram[Reg.TIMA]));
     });
     document.addEventListener("keyup", (event) => {
       //if (!event.repeat) {
         this.gb.con.release(event.key);
+        this.gb.contoller_buffer = this.gb.mbc.ram[Reg.JOYP];
       //}
     });
   }

@@ -1,5 +1,5 @@
 import Cartridge from "./cartridge.ts";
-import { Reg, U16, U8 } from "./utils.ts";
+import { Reg, U16, U8, toBin } from "./utils.ts";
 
 export default interface MBC {
   cartridge: Cartridge;
@@ -57,6 +57,16 @@ export class MBC1 implements MBC {
   }
 
   read(i: U16): U8 {
+    //if (i == Reg.IE || i == Reg.IF) {
+      //console.log("IF:",toBin(this.ram[Reg.IF]),"IE:",toBin(this.ram[Reg.IE]));
+    //}
+
+    //if (i == Reg.JOYP) {
+      //if ((this.ram[Reg.JOYP] & 0b001111) > 0) {
+      //  console.log("JOYP", toBin(this.ram[Reg.JOYP]));
+      //}
+    //}
+
     if (i >= 0 && i <= 0x3fff) {
       //let b2 = this.ram[0x4000];
       //let ii = (b2 & 0b11) == 0 ? i : ((b2 << 19) | i);

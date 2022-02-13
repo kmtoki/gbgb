@@ -5,116 +5,149 @@ export default class Controller {
   m: MBC;
   constructor(m: MBC) {
     this.m = m;
-    this.m.ram[Reg.JOYP] = 0xff;
+    this.m.ram[Reg.JOYP] = 0;
   }
 
-  toggle(c: string) {
+  release(c: string) {
+    let ok = false;
     switch (c) {
-      case "z":
-        this.start ? this.press(c) : this.release(c);
-        break;
-      case "x":
-        this.select ? this.press(c) : this.release(c);
-        break;
       case "w":
-        this.up ? this.press(c) : this.release(c);
+        //this.releaseAll();
+        this.up = 1;
+        //this.matrix_select_arrow = 1;
+        //this.matrix_select_action = 0;
+        ok = true;
         break;
       case "s":
-        this.down ? this.press(c) : this.release(c);
+        //this.releaseAll();
+        this.down = 1;
+        //this.matrix_select_arrow = 1;
+        //this.matrix_select_action = 0;
+        ok = true;
         break;
       case "a":
-        this.left ? this.press(c) : this.release(c);
+        //this.releaseAll();
+        this.left = 1;
+        //this.matrix_select_arrow = 1;
+        //this.matrix_select_action = 0;
+        ok = true;
         break;
       case "d":
-        this.right ? this.press(c) : this.release(c);
-        break;
-      case "j":
-        this.a ? this.press(c) : this.release(c);
+        //this.releaseAll();
+        this.right = 1;
+        //this.matrix_select_arrow = 1;
+        //this.matrix_select_action = 0;
+        ok = true;
         break;
       case "k":
-        this.b ? this.press(c) : this.release(c);
+        //this.releaseAll();
+        this.a = 1;
+        //this.matrix_select_action = 1;
+        //this.matrix_select_arrow = 0;
+        ok = true;
         break;
+      case "j":
+        //this.releaseAll();
+        this.b = 1;
+        //this.matrix_select_action = 1;
+        //this.matrix_select_arrow = 0;
+        ok = true;
+        break;
+      case "x":
+        //this.releaseAll();
+        this.start = 1;
+        //this.matrix_select_action = 1;
+        //this.matrix_select_arrow = 0;
+        ok = true;
+        break;
+      case "z":
+        //this.releaseAll();
+        this.select = 1;
+        //this.matrix_select_action = 1;
+        //this.matrix_select_arrow = 0;
+        ok = true;
+        break;
+ 
+    }
+    if (ok) {
+      this.m.ram[Reg.IF] |= 0b10000;
+      //this.m.ram[Reg.IE] |= 0b10000;
     }
   }
 
   press(c: string) {
-    this.releaseAll();
+    let ok = false;
     switch (c) {
-      case "z":
-        this.start = 0;
-        this.matrix_select_action = 0;
-        break;
-      case "x":
-        this.select = 0;
-        this.matrix_select_action = 0;
-        break;
-      case "w":
+     case "w":
+        //this.pressAll();
         this.up = 0;
-        this.matrix_select_arrow = 0;
+        //this.matrix_select_arrow = 0;
+        //this.matrix_select_arrow = 0;
+        //this.matrix_select_action = 1;
+        ok = true;
         break;
       case "s":
+        //this.pressAll();
         this.down = 0;
-        this.matrix_select_arrow = 0;
+        //this.matrix_select_arrow = 0;
+        //this.matrix_select_arrow = 0;
+        //this.matrix_select_action = 1;
+        ok = true;
         break;
       case "a":
+        //this.pressAll();
         this.left = 0;
-        this.matrix_select_arrow = 0;
+        //this.matrix_select_arrow = 0;
+        //this.matrix_select_arrow = 0;
+        //this.matrix_select_action = 1;
+        ok = true;
         break;
       case "d":
+        //this.pressAll();
         this.right = 0;
-        this.matrix_select_arrow = 0;
-        break;
-      case "j":
-        this.a = 0;
-        this.matrix_select_action = 0;
+        //this.matrix_select_arrow = 0;
+        //this.matrix_select_arrow = 0;
+        //this.matrix_select_action = 1;
+        ok = true;
         break;
       case "k":
-        this.b = 0;
-        this.matrix_select_action = 0;
+        //this.pressAll();
+        this.a = 0;
+        //this.matrix_select_action = 0;
+        //this.matrix_select_action = 0;
+        //this.matrix_select_arrow = 1;
+        ok = true;
         break;
-    }
-    if ((this.m.ram[Reg.JOYP] & 0b00110000) > 0) {
-      this.m.ram[Reg.IF] |= 0b10000;
-    }
-  }
-
-  release(c: string) {
-    this.pressAll();
-    switch (c) {
-      case "z":
-        this.start = 1;
-        this.matrix_select_action = 1;
+      case "j":
+        //this.pressAll();
+        this.b = 0;
+        //this.matrix_select_action = 0;
+        //this.matrix_select_action = 0;
+        //this.matrix_select_arrow = 1;
+        ok = true;
         break;
       case "x":
-        this.select = 1;
-        this.matrix_select_action = 1;
+        //this.pressAll();
+        this.start = 0;
+        //this.matrix_select_action = 0;
+        //this.matrix_select_action = 0;
+        //this.matrix_select_arrow = 1;
+        ok = true;
         break;
-      case "w":
-        this.up = 1;
-        this.matrix_select_arrow = 1;
+      case "z":
+        //this.pressAll();
+        this.select = 0;
+        //this.matrix_select_action = 0;
+        //this.matrix_select_action = 0;
+        //this.matrix_select_arrow = 1;
+        ok = true;
         break;
-      case "s":
-        this.down = 1;
-        this.matrix_select_arrow = 1;
-        break;
-      case "a":
-        this.left = 1;
-        this.matrix_select_arrow = 1;
-        break;
-      case "d":
-        this.right = 1;
-        this.matrix_select_arrow = 1;
-        break;
-      case "j":
-        this.a = 1;
-        this.matrix_select_action = 1;
-        break;
-      case "k":
-        this.b = 1;
-        this.matrix_select_action = 1;
-        break;
+ 
     }
-    this.m.ram[Reg.IF] |= 0b10000;
+    if (ok) {
+      this.m.ram[Reg.IF] |= 0b10000;
+      //this.m.ram[Reg.IE] |= 0b10000;
+    }
   }
 
   releaseAll() {
@@ -236,6 +269,35 @@ export default class Controller {
       this.m.ram[Reg.JOYP] &= ~0b00000001;
     } else {
       this.m.ram[Reg.JOYP] |= 0b00000001;
+    }
+  }
+
+  toggle(c: string) {
+    switch (c) {
+      case "z":
+        this.start ? this.press(c) : this.release(c);
+        break;
+      case "x":
+        this.select ? this.press(c) : this.release(c);
+        break;
+      case "w":
+        this.up ? this.press(c) : this.release(c);
+        break;
+      case "s":
+        this.down ? this.press(c) : this.release(c);
+        break;
+      case "a":
+        this.left ? this.press(c) : this.release(c);
+        break;
+      case "d":
+        this.right ? this.press(c) : this.release(c);
+        break;
+      case "j":
+        this.a ? this.press(c) : this.release(c);
+        break;
+      case "k":
+        this.b ? this.press(c) : this.release(c);
+        break;
     }
   }
 }
