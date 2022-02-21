@@ -65,7 +65,6 @@ class WebView {
 
       //if (!event.repeat) {
         this.gb.con.press(event.key);
-        this.gb.contoller_buffer = this.gb.mbc.ram[Reg.JOYP];
       //}
       //console.log("IF: ",toBin(this.gb.mbc.ram[Reg.IF]));
       //console.log("IE: ",toBin(this.gb.mbc.ram[Reg.IE]));
@@ -75,7 +74,6 @@ class WebView {
     document.addEventListener("keyup", (event) => {
       //if (!event.repeat) {
         this.gb.con.release(event.key);
-        this.gb.contoller_buffer = this.gb.mbc.ram[Reg.JOYP];
       //}
     });
   }
