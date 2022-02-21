@@ -18,8 +18,8 @@ class WebView {
     this.gb = gb;
 
     this.canvas = <HTMLCanvasElement> document.getElementById("canvas")!;
-    this.canvas.height = document.body.clientHeight*0.96;
-    this.canvas.width = document.body.clientWidth*0.98;
+    this.canvas.height = document.body.clientHeight*0.98;
+    this.canvas.width = document.body.clientWidth*0.99;
 
     this.ctx = this.canvas.getContext("2d")!;
     this.ctx.fillStyle = "black";
@@ -35,7 +35,7 @@ class WebView {
 
     this.buffer = new Array(1024);
     for (let i = 0; i < this.buffer.length; i++) {
-      this.buffer[i] = new Array(1024);
+      this.buffer[i] = new Array(1024*2);
       for (let j = 0; j < this.buffer[i].length; j++) {
         this.buffer[i][j] = 0;
       }
@@ -64,7 +64,7 @@ class WebView {
       }
 
       //if (!event.repeat) {
-        this.gb.con.press(event.key);
+      this.gb.con.press(event.key);
       //}
       //console.log("IF: ",toBin(this.gb.mbc.ram[Reg.IF]));
       //console.log("IE: ",toBin(this.gb.mbc.ram[Reg.IE]));
@@ -73,7 +73,7 @@ class WebView {
     });
     document.addEventListener("keyup", (event) => {
       //if (!event.repeat) {
-        this.gb.con.release(event.key);
+      this.gb.con.release(event.key);
       //}
     });
   }
@@ -90,14 +90,124 @@ class WebView {
       : "rgb(255,0,0)";
   }
 
+  //draw() {
+  //  let px = 10;
+
+  //  // PPU Buffer
+  //  for (let y = 0; y < this.gb.ppu.buffer.length; y++) {
+  //    for (let x = 0; x < this.gb.ppu.buffer[y].length; x++) {
+  //      let bx = x;
+  //      let by = y;
+  //      if (this.buffer[by][bx] != this.gb.ppu.buffer[y][x]) {
+  //        this.buffer[by][bx] = this.gb.ppu.buffer[y][x];
+  //        this.ctx.fillStyle = this.color(this.gb.ppu.buffer[y][x]);
+  //        this.ctx.fillRect(bx,by,1,1);
+  //      }
+  //    }
+  //  }
+
+  //  px += this.gb.ppu.buffer[0].length + 10;
+
+  //  // PPU Background Buffer
+  //  for (let y = 0; y < this.gb.ppu.bg_buffer.length; y++) {
+  //    for (let x = 0; x < this.gb.ppu.bg_buffer[y].length; x++) {
+  //      let bx = x + px;
+  //      let by = y;
+  //      if (this.buffer[by][bx] != this.gb.ppu.bg_buffer[y][x]) {
+  //        this.buffer[by][bx] = this.gb.ppu.bg_buffer[y][x];
+  //        this.ctx.fillStyle = this.color(this.gb.ppu.bg_buffer[y][x]);
+  //        this.ctx.fillRect(bx,by,1,1);
+  //      }
+  //    }
+  //  }
+
+  //  px += this.gb.ppu.bg_buffer[0].length + 10;
+
+  //  // Display/Scroll
+  //  //this.ctx.strokeStyle = "#55aa55";
+  //  //this.ctx.strokeRect(270, 10, 161, 145);
+  //  let scy = this.gb.ppu.SCY;
+  //  for (let y = 0; y < 144; y++) {
+  //    let scx = this.gb.ppu.SCX;
+  //    for (let x = 0; x < 160; x++) {
+  //      let bx = x + px;
+  //      let by = y;
+  //      if (this.buffer[by][bx] != this.gb.ppu.buffer[scy][scx]) {
+  //        this.buffer[by][bx] = this.gb.ppu.buffer[scy][scx];
+  //        this.ctx.fillStyle = this.color(this.gb.ppu.buffer[scy][scx]);
+  //        this.ctx.fillRect(bx,by,1,1);
+  //      }
+
+  //      if (scx >= 255) {
+  //        scx = 0;
+  //        scy += 1;
+  //      } else {
+  //        scx += 1;
+  //      }
+
+  //      if (scy >= 255) {
+  //        scy = 0;
+  //      }
+  //    }
+  //    if (this.gb.ppu.SCX < scx) {
+  //      scy += 1;
+  //    }
+  //  }
+
+  //  px += 160 + 10;
+
+  //  // VRAM Dump
+  //  //this.ctx.strokeStyle = "#55aa55";
+  //  //this.ctx.strokeRect(435, 10, 256, 256);
+  //  let oy = 0;
+  //  let ox = 0;
+  //  let spriteSize = this.gb.ppu.LCDC_SpriteSize;
+  //  let size = 32 * 32 / (spriteSize == 0 ? 1 : 2);
+  //  for (let i = 0; i < size; i++) {
+  //    const sprite = this.gb.ppu.getSprite(
+  //      0x8000,
+  //      i * (spriteSize == 0 ? 1 : 2),
+  //      spriteSize,
+  //    );
+  //    for (let y = 0; y < sprite.length; y++) {
+  //      let yy = oy + y;
+  //      for (let x = 0; x < sprite[y].length; x++) {
+  //        let xx = ox + x;
+  //        let bx = xx + px;
+  //        let by = yy;
+  //        if (this.buffer[by][bx] != sprite[y][x]) {
+  //          this.buffer[by][bx] = sprite[y][x];
+  //          this.ctx.fillStyle = this.color(sprite[y][x]);
+  //          this.ctx.fillRect(bx,by,1,1);
+  //        }
+
+  //      }
+  //    }
+
+  //    ox += 8;
+
+  //    if (ox >= 256) {
+  //      oy += spriteSize == 0 ? 8 : 16;
+  //      ox = 0;
+  //    }
+  //  }
+  //}
+
+
+
+  // all rendering PPU Buffer Background/Window/Sprite
   draw() {
+    let strokeStyle = "#559955";
+    let py = 10;
+    let px = 10;
+
     // PPU Buffer
-    this.ctx.strokeStyle = "#55aa55";
-    this.ctx.strokeRect(10, 10, 256, 256);
+    this.ctx.strokeStyle = strokeStyle;
+    this.ctx.strokeRect(px-2, py-2, this.gb.ppu.buffer[0].length + 2, this.gb.ppu.buffer.length + 2);
     for (let y = 0; y < this.gb.ppu.buffer.length; y++) {
       for (let x = 0; x < this.gb.ppu.buffer[y].length; x++) {
-        let bx = 10 + x;
-        let by = 10 + y;
+        let bx = x + px;
+        let by = y + py;
         if (this.buffer[by][bx] != this.gb.ppu.buffer[y][x]) {
           this.buffer[by][bx] = this.gb.ppu.buffer[y][x];
           this.ctx.fillStyle = this.color(this.gb.ppu.buffer[y][x]);
@@ -106,15 +216,112 @@ class WebView {
       }
     }
 
+    //py += this.gb.ppu.buffer.length + 10;
+    px += this.gb.ppu.buffer[0].length + 10;
+
+    // PPU Background Buffer
+    this.ctx.strokeStyle = strokeStyle;
+    this.ctx.strokeRect(px-2, py-2, this.gb.ppu.bg_buffer[0].length + 2, this.gb.ppu.bg_buffer.length + 2);
+    for (let y = 0; y < this.gb.ppu.bg_buffer.length; y++) {
+      for (let x = 0; x < this.gb.ppu.bg_buffer[y].length; x++) {
+        let bx = x + px;
+        let by = y + py;
+        if (this.buffer[by][bx] != this.gb.ppu.bg_buffer[y][x]) {
+          this.buffer[by][bx] = this.gb.ppu.bg_buffer[y][x];
+          this.ctx.fillStyle = this.color(this.gb.ppu.bg_buffer[y][x]);
+          this.ctx.fillRect(bx,by,1,1);
+        }
+      }
+    }
+
+    py += this.gb.ppu.bg_buffer.length + 10;
+    //px += this.gb.ppu.bg_buffer[0].length + 10;
+    px = 10;
+
+    // PPU Window Buffer
+    this.ctx.strokeStyle = strokeStyle;
+    this.ctx.strokeRect(px-2, py-2, this.gb.ppu.win_buffer[0].length + 2, this.gb.ppu.win_buffer.length + 2);
+    for (let y = 0; y < this.gb.ppu.win_buffer.length; y++) {
+      for (let x = 0; x < this.gb.ppu.win_buffer[y].length; x++) {
+        let bx = x + px;
+        let by = y + py;
+        if (this.buffer[by][bx] != this.gb.ppu.win_buffer[y][x]) {
+          this.buffer[by][bx] = this.gb.ppu.win_buffer[y][x];
+          this.ctx.fillStyle = this.color(this.gb.ppu.win_buffer[y][x]);
+          this.ctx.fillRect(bx,by,1,1);
+        }
+      }
+    }
+
+    //py += this.gb.ppu.win_buffer.length + 10;
+    px += this.gb.ppu.win_buffer[0].length + 10;
+
+    // PPU Sprite Buffer
+    this.ctx.strokeStyle = strokeStyle;
+    this.ctx.strokeRect(px-2, py-2, this.gb.ppu.sp_buffer[0].length + 2, this.gb.ppu.sp_buffer.length + 2);
+    for (let y = 0; y < this.gb.ppu.win_buffer.length; y++) {
+      for (let x = 0; x < this.gb.ppu.win_buffer[y].length; x++) {
+        let bx = x + px;
+        let by = y + py;
+        if (this.buffer[by][bx] != this.gb.ppu.sp_buffer[y][x]) {
+          this.buffer[by][bx] = this.gb.ppu.sp_buffer[y][x];
+          this.ctx.fillStyle = this.color(this.gb.ppu.sp_buffer[y][x]);
+          this.ctx.fillRect(bx,by,1,1);
+        }
+      }
+    }
+
+    py = 10;
+    px += this.gb.ppu.sp_buffer[0].length + 10;
+
+    // VRAM Dump
+    let oy = 0;
+    let ox = 0;
+    let spriteSize = this.gb.ppu.LCDC_SpriteSize;
+    let size = 32 * 32 / (spriteSize == 0 ? 1 : 2);
+    for (let i = 0; i < size; i++) {
+      const sprite = this.gb.ppu.getSprite(
+        0x8000,
+        i * (spriteSize == 0 ? 1 : 2),
+        spriteSize,
+      );
+      for (let y = 0; y < sprite.length; y++) {
+        let yy = oy + y;
+        for (let x = 0; x < sprite[y].length; x++) {
+          let xx = ox + x;
+          let bx = xx + px;
+          let by = yy + py;
+          if (this.buffer[by][bx] != sprite[y][x]) {
+            this.buffer[by][bx] = sprite[y][x];
+            this.ctx.fillStyle = this.color(sprite[y][x]);
+            this.ctx.fillRect(bx,by,1,1);
+          }
+
+        }
+      }
+
+      ox += 8;
+
+      if (ox >= 256) {
+        oy += spriteSize == 0 ? 8 : 16;
+        ox = 0;
+      }
+    }
+    this.ctx.strokeStyle = strokeStyle;
+    this.ctx.strokeRect(px-2, py-2, 260, oy + 2);
+
+    py = oy + 20;
+    //px += this.gb.ppu.sp_buffer[0].length + 10;
+
     // Display/Scroll
-    this.ctx.strokeStyle = "#55aa55";
-    this.ctx.strokeRect(270, 10, 161, 145);
+    this.ctx.strokeStyle = strokeStyle;
+    this.ctx.strokeRect(px-2, py-2, 164, 148);
     let scy = this.gb.ppu.SCY;
     for (let y = 0; y < 144; y++) {
       let scx = this.gb.ppu.SCX;
       for (let x = 0; x < 160; x++) {
-        let bx = 270 + x;
-        let by = 10 + y;
+        let bx = x + px;
+        let by = y + py;
         if (this.buffer[by][bx] != this.gb.ppu.buffer[scy][scx]) {
           this.buffer[by][bx] = this.gb.ppu.buffer[scy][scx];
           this.ctx.fillStyle = this.color(this.gb.ppu.buffer[scy][scx]);
@@ -134,42 +341,6 @@ class WebView {
       }
       if (this.gb.ppu.SCX < scx) {
         scy += 1;
-      }
-    }
-
-    // VRAM Dump
-    this.ctx.strokeStyle = "#55aa55";
-    this.ctx.strokeRect(435, 10, 256, 256);
-    let oy = 0;
-    let ox = 0;
-    let spriteSize = this.gb.ppu.LCDC_SpriteSize;
-    let size = 32 * 32 / (spriteSize == 0 ? 1 : 2);
-    for (let i = 0; i < size; i++) {
-      const sprite = this.gb.ppu.getSprite(
-        0x8000,
-        i * (spriteSize == 0 ? 1 : 2),
-        spriteSize,
-      );
-      for (let y = 0; y < sprite.length; y++) {
-        let yy = oy + y;
-        for (let x = 0; x < sprite[y].length; x++) {
-          let xx = ox + x;
-          let bx = 435 + xx;
-          let by = 10 + yy;
-          if (this.buffer[by][bx] != sprite[y][x]) {
-            this.buffer[by][bx] = sprite[y][x];
-            this.ctx.fillStyle = this.color(sprite[y][x]);
-            this.ctx.fillRect(bx,by,1,1);
-          }
- 
-        }
-      }
-
-      ox += 8;
-
-      if (ox >= 256) {
-        oy += spriteSize == 0 ? 8 : 16;
-        ox = 0;
       }
     }
   }

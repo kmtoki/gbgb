@@ -4,16 +4,28 @@ import { Reg, toHex, toI8, U16, U8 } from "./utils.ts";
 export default class PPU {
   m: MBC;
   buffer: number[][];
+  bg_buffer: number[][];
+  win_buffer: number[][];
+  sp_buffer: number[][];
   cycle: number;
   cycle_line: number;
 
   constructor(m: MBC) {
     this.m = m;
     this.buffer = new Array(256);
+    this.bg_buffer = new Array(256);
+    this.win_buffer = new Array(256);
+    this.sp_buffer = new Array(256);
     for (let i = 0; i < this.buffer.length; i++) {
       this.buffer[i] = new Array(256);
+      this.bg_buffer[i] = new Array(256);
+      this.win_buffer[i] = new Array(256);
+      this.sp_buffer[i] = new Array(256);
       for (let j = 0; j < this.buffer[i].length; j++) {
         this.buffer[i][j] = 0;
+        this.bg_buffer[i][j] = 0;
+        this.win_buffer[i][j] = 0;
+        this.sp_buffer[i][j] = 0;
       }
     }
     this.cycle = 0;
@@ -300,6 +312,9 @@ export default class PPU {
     for (let y = 0; y < this.buffer.length; y++) {
       for (let x = 0; x < this.buffer.length; x++) {
         this.buffer[y][x] = 0;
+        this.bg_buffer[y][x] = 0;
+        this.win_buffer[y][x] = 0;
+        this.sp_buffer[y][x] = 0;
       }
     }
   }
@@ -379,9 +394,7 @@ export default class PPU {
         for (let xx = 0; xx < 8; xx++) {
           let yyy = y + yy;
           let xxx = x + xx;
-          this.buffer[yyy][xxx] = this.LCDC_WindowDisplayPriority == 0
-            ? 0
-            : sprite[yy][xx];
+          this.bg_buffer[yyy][xxx] = sprite[yy][xx];
         }
       }
 
@@ -396,7 +409,7 @@ export default class PPU {
   renderWindow() {
     if (this.LCDC_WindowDisplayEnable == 1) {
       let wy = this.WY;
-      let wx = this.WX - 7;
+      let wx = this.WX - 6;
       let w_addr = this.LCDC_WindowTileMapDisplaySelect == 0 ? 0x9800 : 0x9c00;
       for (let i = 0; i < 1024; i++) {
         let sp_addr = this.m.ram[w_addr++];
@@ -410,11 +423,7 @@ export default class PPU {
             let xx = wx + x;
             yy = yy >= 256 ? yy - 256 : yy;
             xx = xx >= 256 ? xx - 256 : xx;
-            if (sprite[y][x] != 0) {
-              this.buffer[yy][xx] = this.LCDC_WindowDisplayPriority == 0
-                ? 0
-                : sprite[y][x];
-            }
+            this.win_buffer[yy][xx] = sprite[y][x];
           }
         }
 
@@ -423,8 +432,9 @@ export default class PPU {
           wx -= 256;
           wy += 8;
         }
-        if (wy >= 256) {
-          wy -= 256;
+        if (wy >= 144) {
+          wy -= 144;
+          break;
         }
       }
     }
@@ -448,7 +458,6 @@ export default class PPU {
           sprite = sprite.map((ss) => ss.reverse());
         }
         if ((oam[3] >> 7 & 1) == 1) { // Obj or BG Priority. 0 = Obj. 1 = BG
-          continue;
           //for (let y = 0; y < sprite.length; y++) {
           //   for (let x = 0; x < sprite[y].length; x++) {
           //     this.buffer[oam[0]+y][oam[1]+x] = 0;
@@ -461,7 +470,7 @@ export default class PPU {
         for (let y = 0; y < sprite.length; y++) {
           for (let x = 0; x < sprite[y].length; x++) {
             if (sprite[y][x] != 0) {
-              this.buffer[oy + y][ox + x] = sprite[y][x];
+              this.sp_buffer[oy + y][ox + x] = sprite[y][x];
             }
           }
         }
@@ -469,12 +478,36 @@ export default class PPU {
     }
   }
 
+  mixBuffer() {
+    for (let y = 0; y < this.buffer.length; y++) {
+      for (let x = 0; x < this.buffer[y].length; x++) {
+        if (this.LCDC_DisplayEnable == 1) {
+          if (this.LCDC_WindowDisplayPriority == 1) {
+            this.buffer[y][x] = this.bg_buffer[y][x];
+            if (this.LCDC_WindowDisplayEnable == 1 || this.WY == this.LY) {
+              this.buffer[y][x] = this.win_buffer[y][x];
+            }
+          }
+          if (this.LCDC_SpriteDisplayEnable == 1) {
+            if (this.sp_buffer[y][x] != 0) {
+              this.buffer[y][x] = this.sp_buffer[y][x];
+            }
+          }
+        }
+        else {
+          this.buffer[y][x] = 0;
+        }
+      }
+    }
+  }
+
   render() {
     this.transferOAM();
-    //this.clearBuffer();
+    this.clearBuffer();
     this.renderBackground();
     this.renderWindow();
     this.renderOAM();
+    this.mixBuffer();
   }
 
   compareLY() {
