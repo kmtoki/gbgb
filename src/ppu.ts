@@ -485,7 +485,9 @@ export default class PPU {
           if (this.LCDC_WindowDisplayPriority == 1) {
             this.buffer[y][x] = this.bg_buffer[y][x];
             if (this.LCDC_WindowDisplayEnable == 1 || this.WY == this.LY) {
-              this.buffer[y][x] = this.win_buffer[y][x];
+              if (y >= this.WY && y <= 144 && x >= (this.WX - 6) && x <= 255) {
+                this.buffer[y][x] = this.win_buffer[y][x];
+              }
             }
           }
           if (this.LCDC_SpriteDisplayEnable == 1) {

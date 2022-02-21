@@ -201,25 +201,7 @@ class WebView {
     let py = 10;
     let px = 10;
 
-    // PPU Buffer
-    this.ctx.strokeStyle = strokeStyle;
-    this.ctx.strokeRect(px-2, py-2, this.gb.ppu.buffer[0].length + 2, this.gb.ppu.buffer.length + 2);
-    for (let y = 0; y < this.gb.ppu.buffer.length; y++) {
-      for (let x = 0; x < this.gb.ppu.buffer[y].length; x++) {
-        let bx = x + px;
-        let by = y + py;
-        if (this.buffer[by][bx] != this.gb.ppu.buffer[y][x]) {
-          this.buffer[by][bx] = this.gb.ppu.buffer[y][x];
-          this.ctx.fillStyle = this.color(this.gb.ppu.buffer[y][x]);
-          this.ctx.fillRect(bx,by,1,1);
-        }
-      }
-    }
-
-    //py += this.gb.ppu.buffer.length + 10;
-    px += this.gb.ppu.buffer[0].length + 10;
-
-    // PPU Background Buffer
+   // PPU Background Buffer
     this.ctx.strokeStyle = strokeStyle;
     this.ctx.strokeRect(px-2, py-2, this.gb.ppu.bg_buffer[0].length + 2, this.gb.ppu.bg_buffer.length + 2);
     for (let y = 0; y < this.gb.ppu.bg_buffer.length; y++) {
@@ -234,9 +216,7 @@ class WebView {
       }
     }
 
-    py += this.gb.ppu.bg_buffer.length + 10;
-    //px += this.gb.ppu.bg_buffer[0].length + 10;
-    px = 10;
+    px += this.gb.ppu.bg_buffer[0].length + 10;
 
     // PPU Window Buffer
     this.ctx.strokeStyle = strokeStyle;
@@ -253,7 +233,6 @@ class WebView {
       }
     }
 
-    //py += this.gb.ppu.win_buffer.length + 10;
     px += this.gb.ppu.win_buffer[0].length + 10;
 
     // PPU Sprite Buffer
@@ -271,8 +250,8 @@ class WebView {
       }
     }
 
-    py = 10;
-    px += this.gb.ppu.sp_buffer[0].length + 10;
+    py += this.gb.ppu.sp_buffer.length + 10;
+    px = 10;
 
     // VRAM Dump
     let oy = 0;
@@ -310,8 +289,25 @@ class WebView {
     this.ctx.strokeStyle = strokeStyle;
     this.ctx.strokeRect(px-2, py-2, 260, oy + 2);
 
-    py = oy + 20;
-    //px += this.gb.ppu.sp_buffer[0].length + 10;
+    px += 256 + 10;
+
+    // PPU Buffer
+    this.ctx.strokeStyle = strokeStyle;
+    this.ctx.strokeRect(px-2, py-2, this.gb.ppu.buffer[0].length + 2, this.gb.ppu.buffer.length + 2);
+    for (let y = 0; y < this.gb.ppu.buffer.length; y++) {
+      for (let x = 0; x < this.gb.ppu.buffer[y].length; x++) {
+        let bx = x + px;
+        let by = y + py;
+        if (this.buffer[by][bx] != this.gb.ppu.buffer[y][x]) {
+          this.buffer[by][bx] = this.gb.ppu.buffer[y][x];
+          this.ctx.fillStyle = this.color(this.gb.ppu.buffer[y][x]);
+          this.ctx.fillRect(bx,by,1,1);
+        }
+      }
+    }
+
+    //py += this.gb.ppu.buffer.length + 10;
+    px += this.gb.ppu.buffer[0].length + 10;
 
     // Display/Scroll
     this.ctx.strokeStyle = strokeStyle;
