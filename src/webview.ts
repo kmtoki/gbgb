@@ -35,9 +35,9 @@ class WebView {
 
     this.buffer = new Array(1024);
     for (let i = 0; i < this.buffer.length; i++) {
-      this.buffer[i] = new Array(1024*2);
+      this.buffer[i] = new Array(1024);
       for (let j = 0; j < this.buffer[i].length; j++) {
-        this.buffer[i][j] = 0;
+        this.buffer[i][j] = 3;
       }
     }
 
@@ -79,123 +79,17 @@ class WebView {
   }
 
   color(c: number): string {
-    return c == 0
+    return c == 3
       ? "rgb(0,0,0)"
-      : c == 1
-      ? "rgb(85,85,85)"
       : c == 2
+      ? "rgb(85,85,85)"
+      : c == 1
       ? "rgb(170,170,170)"
-      : c == 3
+      : c == 0
       ? "rgb(255,255,255)"
       : "rgb(255,0,0)";
   }
 
-  //draw() {
-  //  let px = 10;
-
-  //  // PPU Buffer
-  //  for (let y = 0; y < this.gb.ppu.buffer.length; y++) {
-  //    for (let x = 0; x < this.gb.ppu.buffer[y].length; x++) {
-  //      let bx = x;
-  //      let by = y;
-  //      if (this.buffer[by][bx] != this.gb.ppu.buffer[y][x]) {
-  //        this.buffer[by][bx] = this.gb.ppu.buffer[y][x];
-  //        this.ctx.fillStyle = this.color(this.gb.ppu.buffer[y][x]);
-  //        this.ctx.fillRect(bx,by,1,1);
-  //      }
-  //    }
-  //  }
-
-  //  px += this.gb.ppu.buffer[0].length + 10;
-
-  //  // PPU Background Buffer
-  //  for (let y = 0; y < this.gb.ppu.bg_buffer.length; y++) {
-  //    for (let x = 0; x < this.gb.ppu.bg_buffer[y].length; x++) {
-  //      let bx = x + px;
-  //      let by = y;
-  //      if (this.buffer[by][bx] != this.gb.ppu.bg_buffer[y][x]) {
-  //        this.buffer[by][bx] = this.gb.ppu.bg_buffer[y][x];
-  //        this.ctx.fillStyle = this.color(this.gb.ppu.bg_buffer[y][x]);
-  //        this.ctx.fillRect(bx,by,1,1);
-  //      }
-  //    }
-  //  }
-
-  //  px += this.gb.ppu.bg_buffer[0].length + 10;
-
-  //  // Display/Scroll
-  //  //this.ctx.strokeStyle = "#55aa55";
-  //  //this.ctx.strokeRect(270, 10, 161, 145);
-  //  let scy = this.gb.ppu.SCY;
-  //  for (let y = 0; y < 144; y++) {
-  //    let scx = this.gb.ppu.SCX;
-  //    for (let x = 0; x < 160; x++) {
-  //      let bx = x + px;
-  //      let by = y;
-  //      if (this.buffer[by][bx] != this.gb.ppu.buffer[scy][scx]) {
-  //        this.buffer[by][bx] = this.gb.ppu.buffer[scy][scx];
-  //        this.ctx.fillStyle = this.color(this.gb.ppu.buffer[scy][scx]);
-  //        this.ctx.fillRect(bx,by,1,1);
-  //      }
-
-  //      if (scx >= 255) {
-  //        scx = 0;
-  //        scy += 1;
-  //      } else {
-  //        scx += 1;
-  //      }
-
-  //      if (scy >= 255) {
-  //        scy = 0;
-  //      }
-  //    }
-  //    if (this.gb.ppu.SCX < scx) {
-  //      scy += 1;
-  //    }
-  //  }
-
-  //  px += 160 + 10;
-
-  //  // VRAM Dump
-  //  //this.ctx.strokeStyle = "#55aa55";
-  //  //this.ctx.strokeRect(435, 10, 256, 256);
-  //  let oy = 0;
-  //  let ox = 0;
-  //  let spriteSize = this.gb.ppu.LCDC_SpriteSize;
-  //  let size = 32 * 32 / (spriteSize == 0 ? 1 : 2);
-  //  for (let i = 0; i < size; i++) {
-  //    const sprite = this.gb.ppu.getSprite(
-  //      0x8000,
-  //      i * (spriteSize == 0 ? 1 : 2),
-  //      spriteSize,
-  //    );
-  //    for (let y = 0; y < sprite.length; y++) {
-  //      let yy = oy + y;
-  //      for (let x = 0; x < sprite[y].length; x++) {
-  //        let xx = ox + x;
-  //        let bx = xx + px;
-  //        let by = yy;
-  //        if (this.buffer[by][bx] != sprite[y][x]) {
-  //          this.buffer[by][bx] = sprite[y][x];
-  //          this.ctx.fillStyle = this.color(sprite[y][x]);
-  //          this.ctx.fillRect(bx,by,1,1);
-  //        }
-
-  //      }
-  //    }
-
-  //    ox += 8;
-
-  //    if (ox >= 256) {
-  //      oy += spriteSize == 0 ? 8 : 16;
-  //      ox = 0;
-  //    }
-  //  }
-  //}
-
-
-
-  // all rendering PPU Buffer Background/Window/Sprite
   draw() {
     let strokeStyle = "#559955";
     let py = 10;
@@ -203,7 +97,8 @@ class WebView {
 
    // PPU Background Buffer
     this.ctx.strokeStyle = strokeStyle;
-    this.ctx.strokeRect(px-2, py-2, this.gb.ppu.bg_buffer[0].length + 2, this.gb.ppu.bg_buffer.length + 2);
+    this.ctx.strokeRect(
+      px-2, py-2, this.gb.ppu.bg_buffer[0].length + 2, this.gb.ppu.bg_buffer.length + 2);
     for (let y = 0; y < this.gb.ppu.bg_buffer.length; y++) {
       for (let x = 0; x < this.gb.ppu.bg_buffer[y].length; x++) {
         let bx = x + px;
@@ -220,7 +115,8 @@ class WebView {
 
     // PPU Window Buffer
     this.ctx.strokeStyle = strokeStyle;
-    this.ctx.strokeRect(px-2, py-2, this.gb.ppu.win_buffer[0].length + 2, this.gb.ppu.win_buffer.length + 2);
+    this.ctx.strokeRect(
+      px-2, py-2, this.gb.ppu.win_buffer[0].length + 2, this.gb.ppu.win_buffer.length + 2);
     for (let y = 0; y < this.gb.ppu.win_buffer.length; y++) {
       for (let x = 0; x < this.gb.ppu.win_buffer[y].length; x++) {
         let bx = x + px;
@@ -237,7 +133,8 @@ class WebView {
 
     // PPU Sprite Buffer
     this.ctx.strokeStyle = strokeStyle;
-    this.ctx.strokeRect(px-2, py-2, this.gb.ppu.sp_buffer[0].length + 2, this.gb.ppu.sp_buffer.length + 2);
+    this.ctx.strokeRect(
+      px-2, py-2, this.gb.ppu.sp_buffer[0].length + 2, this.gb.ppu.sp_buffer.length + 2);
     for (let y = 0; y < this.gb.ppu.win_buffer.length; y++) {
       for (let x = 0; x < this.gb.ppu.win_buffer[y].length; x++) {
         let bx = x + px;
@@ -287,7 +184,7 @@ class WebView {
       }
     }
     this.ctx.strokeStyle = strokeStyle;
-    this.ctx.strokeRect(px-2, py-2, 260, oy + 2);
+    this.ctx.strokeRect(px-2, py-2, 258, oy + 2);
 
     px += 256 + 10;
 
@@ -303,40 +200,6 @@ class WebView {
           this.ctx.fillStyle = this.color(this.gb.ppu.buffer[y][x]);
           this.ctx.fillRect(bx,by,1,1);
         }
-      }
-    }
-
-    //py += this.gb.ppu.buffer.length + 10;
-    px += this.gb.ppu.buffer[0].length + 10;
-
-    // Display/Scroll
-    this.ctx.strokeStyle = strokeStyle;
-    this.ctx.strokeRect(px-2, py-2, 164, 148);
-    let scy = this.gb.ppu.SCY;
-    for (let y = 0; y < 144; y++) {
-      let scx = this.gb.ppu.SCX;
-      for (let x = 0; x < 160; x++) {
-        let bx = x + px;
-        let by = y + py;
-        if (this.buffer[by][bx] != this.gb.ppu.buffer[scy][scx]) {
-          this.buffer[by][bx] = this.gb.ppu.buffer[scy][scx];
-          this.ctx.fillStyle = this.color(this.gb.ppu.buffer[scy][scx]);
-          this.ctx.fillRect(bx,by,1,1);
-        }
-
-        if (scx >= 255) {
-          scx = 0;
-          scy += 1;
-        } else {
-          scx += 1;
-        }
-
-        if (scy >= 255) {
-          scy = 0;
-        }
-      }
-      if (this.gb.ppu.SCX < scx) {
-        scy += 1;
       }
     }
   }

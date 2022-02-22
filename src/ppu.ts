@@ -16,12 +16,12 @@ export default class PPU {
     this.bg_buffer = new Array(256);
     this.win_buffer = new Array(256);
     this.sp_buffer = new Array(256);
-    for (let i = 0; i < this.buffer.length; i++) {
+    for (let i = 0; i < this.bg_buffer.length; i++) {
       this.buffer[i] = new Array(256);
       this.bg_buffer[i] = new Array(256);
       this.win_buffer[i] = new Array(256);
       this.sp_buffer[i] = new Array(256);
-      for (let j = 0; j < this.buffer[i].length; j++) {
+      for (let j = 0; j < this.bg_buffer[i].length; j++) {
         this.buffer[i][j] = 0;
         this.bg_buffer[i][j] = 0;
         this.win_buffer[i][j] = 0;
@@ -33,7 +33,7 @@ export default class PPU {
   }
 
   get IF_VBlank() {
-    return this.m.ram[Reg.IF];
+    return this.m.ram[Reg.IF] & 1;
   }
 
   set IF_VBlank(a: U8) {
@@ -45,19 +45,19 @@ export default class PPU {
   }
 
   get IE_VBlank() {
-    return this.m.ram[Reg.IE];
+    return this.m.ram[Reg.IE] & 1;
   }
 
   set IE_VBlank(a: U8) {
     if (a == 0) {
-      this.m.ram[Reg.IE] &= ~0b1;
+      this.m.ram[Reg.IE] &= ~1;
     } else {
-      this.m.ram[Reg.IE] |= 0b1;
+      this.m.ram[Reg.IE] |= 1;
     }
   }
 
   get IF_LCD() {
-    return this.m.ram[Reg.IF];
+    return (this.m.ram[Reg.IF] >> 1) & 1;
   }
 
   set IF_LCD(a: U8) {
@@ -353,7 +353,7 @@ export default class PPU {
   }
 
   getOAM(i: U16): U8[] {
-    if (!(i >= 0 && i <= 40)) {
+    if (!(i >= 0 && i < 40)) {
       throw `getOAM ${toHex(i)}`;
       return [0, 0, 0, 0];
     }
@@ -385,7 +385,7 @@ export default class PPU {
     let y = 0;
     let x = 0;
     let bg_addr = this.LCDC_BG_TileMapDispalySelect == 0 ? 0x9800 : 0x9c00;
-    for (let i = 0; i < 1024; i++) {
+    for (let i = 1; i <= 1024; i++) {
       const sp_addr = this.m.ram[bg_addr++];
       const sprite = this.LCDC_BG_WindowTileDataSelect == 0
         ? this.getSprite(0x9000, toI8(sp_addr))
@@ -399,7 +399,7 @@ export default class PPU {
       }
 
       x += 8;
-      if (x == 256) {
+      if (i % 32 == 0) {
         x = 0;
         y += 8;
       }
@@ -408,10 +408,10 @@ export default class PPU {
 
   renderWindow() {
     if (this.LCDC_WindowDisplayEnable == 1) {
-      let wy = this.WY;
-      let wx = this.WX - 6;
+      let wy = this.SCY + this.WY;
+      let wx = this.SCX + this.WX - 6;
       let w_addr = this.LCDC_WindowTileMapDisplaySelect == 0 ? 0x9800 : 0x9c00;
-      for (let i = 0; i < 1024; i++) {
+      for (let i = 1; i <= 1024; i++) {
         let sp_addr = this.m.ram[w_addr++];
         const sprite = this.LCDC_BG_WindowTileDataSelect == 0
           ? this.getSprite(0x9000, toI8(sp_addr))
@@ -430,11 +430,13 @@ export default class PPU {
         wx += 8;
         if (wx >= 256) {
           wx -= 256;
+          //wy += 8;
+        }
+        if (i % 32 == 0) {
           wy += 8;
         }
-        if (wy >= 144) {
-          wy -= 144;
-          break;
+        if (wy >= 256) {
+          wy -= 256;
         }
       }
     }
@@ -467,10 +469,12 @@ export default class PPU {
         }
         let oy = oam[0] - 16 < 0 ? oam[0] : oam[0] - 16;
         let ox = oam[1] - 8 < 0 ? oam[1] : oam[1] - 8;
+        oy += this.SCY;
+        ox += this.SCX;
         for (let y = 0; y < sprite.length; y++) {
           for (let x = 0; x < sprite[y].length; x++) {
             if (sprite[y][x] != 0) {
-              this.sp_buffer[oy + y][ox + x] = sprite[y][x];
+              this.sp_buffer[oy + y & 0xff][ox + x & 0xff] = sprite[y][x];
             }
           }
         }
@@ -478,26 +482,88 @@ export default class PPU {
     }
   }
 
-  mixBuffer() {
-    for (let y = 0; y < this.buffer.length; y++) {
-      for (let x = 0; x < this.buffer[y].length; x++) {
-        if (this.LCDC_DisplayEnable == 1) {
-          if (this.LCDC_WindowDisplayPriority == 1) {
-            this.buffer[y][x] = this.bg_buffer[y][x];
-            if (this.LCDC_WindowDisplayEnable == 1 || this.WY == this.LY) {
-              if (y >= this.WY && y <= 144 && x >= (this.WX - 6) && x <= 255) {
-                this.buffer[y][x] = this.win_buffer[y][x];
+  renderDisplay() {
+    if (this.LCDC_DisplayEnable == 1 && this.LCDC_WindowDisplayPriority == 1) {
+
+      // Background
+      for (let y = 0; y < 144; y++) {
+        for (let x = 0; x < 160; x++) {
+          this.buffer[y][x] = this.bg_buffer[this.SCY+y&0xff][this.SCX+x&0xff];
+        }
+      }
+
+      // Window
+      if (this.LCDC_WindowDisplayEnable == 1) {
+        let wy = this.WY;
+        let wx = this.WX - 6;
+        let w_addr = this.LCDC_WindowTileMapDisplaySelect == 0 ? 0x9800 : 0x9c00;
+        for (let i = 1; i <= 1024; i++) {
+          let sp_addr = this.m.ram[w_addr++];
+          const sprite = this.LCDC_BG_WindowTileDataSelect == 0
+            ? this.getSprite(0x9000, toI8(sp_addr))
+            : this.getSprite(0x8000, sp_addr);
+
+          for (let y = 0; y < 8; y++) {
+            for (let x = 0; x < 8; x++) {
+              let yy = wy + y;
+              let xx = wx + x;
+              yy = yy >= 256 ? yy - 256 : yy;
+              xx = xx >= 256 ? xx - 256 : xx;
+              if (yy >= 0 && yy < 144 && xx >= 0 && xx < 160) {
+                this.buffer[yy][xx] = sprite[y][x];
               }
             }
           }
-          if (this.LCDC_SpriteDisplayEnable == 1) {
-            if (this.sp_buffer[y][x] != 0) {
-              this.buffer[y][x] = this.sp_buffer[y][x];
-            }
+
+          wx += 8;
+          if (wx >= 256) {
+            wx -= 256;
+            //wy += 8;
+          }
+          if (i % 32 == 0) {
+            wy += 8;
+          }
+          if (wy >= 256) {
+            wy -= 256;
+            break;
           }
         }
-        else {
-          this.buffer[y][x] = 0;
+      }
+    }
+
+    // Sprite
+    if (this.LCDC_SpriteDisplayEnable == 1) {
+      for (let i = 0; i < 40; i++) {
+        let oam = this.getOAM(i);
+        let sprite = this.getSprite(0x8000, oam[2], this.LCDC_SpriteSize);
+        if (oam[0] == 0 || oam[0] >= 160) {
+          continue;
+        }
+        if (oam[1] == 0 || oam[1] >= 168) {
+          continue;
+        }
+        if ((oam[3] >> 6 & 1) == 1) { // y flip
+          sprite = sprite.reverse();
+        }
+        if ((oam[3] >> 5 & 1) == 1) { // x flip
+          sprite = sprite.map((ss) => ss.reverse());
+        }
+        if ((oam[3] >> 7 & 1) == 1) { // Obj or BG Priority. 0 = Obj. 1 = BG
+          //for (let y = 0; y < sprite.length; y++) {
+          //   for (let x = 0; x < sprite[y].length; x++) {
+          //     this.buffer[oam[0]+y][oam[1]+x] = 0;
+          //   }
+          //}
+          //continue;
+        }
+        let oy = oam[0] - 16 < 0 ? oam[0] : oam[0] - 16;
+        let ox = oam[1] - 8 < 0 ? oam[1] : oam[1] - 8;
+        for (let y = 0; y < sprite.length; y++) {
+          for (let x = 0; x < sprite[y].length; x++) {
+            if (sprite[y][x] != 0) {
+              this.buffer[oy + y][ox + x] = sprite[y][x];
+            }
+          }
         }
       }
     }
@@ -507,9 +573,11 @@ export default class PPU {
     this.transferOAM();
     this.clearBuffer();
     this.renderBackground();
+    this.renderDisplay();
+
+    // debug
     this.renderWindow();
-    this.renderOAM();
-    this.mixBuffer();
+    this.renderOAM();    
   }
 
   compareLY() {
@@ -524,10 +592,9 @@ export default class PPU {
   }
 
   execute(n: number) {
-    n = n / 4; // ?? -> ppu cycle = cpu instruction clock / 4
+    n = n / 4; // ppu cycle = cpu instruction clock / 4
     this.cycle += n;
     this.cycle_line += n;
-    //console.log(this.cycle,this.cycle_line,this.LY);
 
     if (this.cycle_line <= 20) {
       if (this.STAT_ModeFlag != 2 && this.STAT_OAMInterrupt == 1) {

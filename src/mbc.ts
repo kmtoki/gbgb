@@ -19,6 +19,7 @@ export class MBC1 implements MBC {
   rom_bank: number;
   bank1: number;
   bank2: number;
+  ramx_enable: boolean;
 
   constructor(c: Cartridge) {
     this.cartridge = c;
@@ -33,6 +34,7 @@ export class MBC1 implements MBC {
     for (let i = 0; i < this.ramx.length; i++) {
       this.ramx[i] = 0;
     }
+    this.ramx_enable = false;
   }
 
   // for debug
@@ -70,13 +72,19 @@ export class MBC1 implements MBC {
       //return this.cartridge.rom[ii];
       return this.cartridge.rom[this.rom_bank | (i - 0x4000)];
     } else if (i >= 0xa000 && i <= 0xbfff) {
-      let b = this.ram[0];
-      if ((b & 0b11) == 0) {
-        return this.ram[i];
-      } else {
-        //let ii = ((b & 0b11) == 1) ? (i - 0xa000) : ((b & 0b11) << 13) | (i - 0xa000);
+      //let b = this.ram[0];
+      //if ((b & 0b11) == 0) {
+      //  return this.ram[i];
+      //} else {
+      //  //let ii = ((b & 0b11) == 1) ? (i - 0xa000) : ((b & 0b11) << 13) | (i - 0xa000);
+      //  let ii = i - 0xa000;
+      //  return this.ramx[ii];
+      //}
+      if (this.ramx_enable) {
         let ii = i - 0xa000;
         return this.ramx[ii];
+      } else {
+        return this.ram[i];
       }
     } else {
       return this.ram[i];
@@ -86,6 +94,7 @@ export class MBC1 implements MBC {
   write(i: U16, v: U8) {
     if (i >= 0x0000 && i <= 0x1fff) {
       this.ram[i] = v;
+      this.ramx_enable = v == 0x0a;
     } else if (i >= 0x2000 && i <= 0x3fff) {
       this.ram[i] = v == 0 ? 1 : v & 0b11111;
       this.bank1 = this.ram[i];
