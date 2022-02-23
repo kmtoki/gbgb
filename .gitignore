@@ -1,5 +1,6 @@
 
 src/rom.ts
 src/rom2.ts
+dist/webview.js
 gb_test_roms
 text
