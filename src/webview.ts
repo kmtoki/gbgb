@@ -18,7 +18,7 @@ class WebView {
     this.gb = gb;
 
     this.canvas = <HTMLCanvasElement> document.getElementById("canvas")!;
-    this.canvas.height = document.body.clientHeight*0.98;
+    this.canvas.height = document.body.clientHeight*0.97;
     this.canvas.width = document.body.clientWidth*0.99;
 
     this.ctx = this.canvas.getContext("2d")!;

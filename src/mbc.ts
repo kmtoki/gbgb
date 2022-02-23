@@ -1,5 +1,5 @@
 import Cartridge from "./cartridge.ts";
-import { Reg, U16, U8, toBin } from "./utils.ts";
+import { Reg, U16, U8, toBin, toHex } from "./utils.ts";
 
 export default interface MBC {
   cartridge: Cartridge;
@@ -92,6 +92,10 @@ export class MBC1 implements MBC {
   }
 
   write(i: U16, v: U8) {
+    //if (i == 0xc008) { // link y pos
+    //  console.log("0xc008:", toHex(this.ram[i]), "<-", v);
+    //}
+
     if (i >= 0x0000 && i <= 0x1fff) {
       this.ram[i] = v;
       this.ramx_enable = v == 0x0a;
@@ -104,13 +108,11 @@ export class MBC1 implements MBC {
       this.bank2 = v;
       this.rom_bank = (this.bank2 << 19) | (this.bank1 << 14);
     } else if (i >= 0xa000 && i <= 0xbfff) {
-      let b = this.ram[0] & 0b11;
-      if ((b & 0b11) == 0) {
-        this.ram[i] = v;
-      } else {
-        //let ii = ((b & 0b11) == 1) ? (i - 0xa000) : ((b & 0b11) << 13) | (i - 0xa000);
+      if (this.ramx_enable) {
         let ii = i - 0xa000;
         this.ramx[ii] = v;
+      } else {
+        this.ram[i] = v;
       }
     } else if (i >= 0xc000 && i <= 0xddff) {
       this.ram[i] = v;

@@ -1,5 +1,6 @@
 import { bitReset, isZero, toHex, toU16, U16, U8 } from "./utils.ts";
 import { basename } from "https://deno.land/std@0.82.0/path/mod.ts";
+//import ROM from "./rom2.ts";
 
 type Operand =
   | "A"
@@ -2140,6 +2141,8 @@ const main = () => {
   }
   const file = Deno.args[0];
   const rom: Uint8Array = Deno.readFileSync(file);
+  //const file = "zelda";
+  //const rom = ROM;
   let dis = new Disassembler("text/" + basename(file) + ".s", rom);
   console.log("write to ", "text/" + basename(file) + ".s");
   //dis.pc = 0x150;

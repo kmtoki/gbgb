@@ -330,15 +330,7 @@ export default class PPU {
       for (let k = 7; k >= 0; k--) {
         const x = b1 >> k & 1;
         const y = b2 >> k & 1;
-        const z = x == 0 && y == 0
-          ? 0
-          : x == 1 && y == 0
-          ? 1
-          : x == 0 && y == 1
-          ? 2
-          : x == 1 && y == 1
-          ? 3
-          : 4;
+        const z = y << 1 | x;
         sprite[sprite.length - 1].push(z);
       }
     }
