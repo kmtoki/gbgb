@@ -30,15 +30,15 @@ export default class Controller {
     if (jm == 0b01) {
       this.m.ram[Reg.JOYP] = 
         0b00010000 | (this.start << 3) | (this.select << 2) | (this.b << 1) | this.a;
-      this.m.ram[Reg.IF] |= 0b1000;
+      //this.m.ram[Reg.IF] |= 0b1000;
     }
     else if (jm == 0b10) {
       this.m.ram[Reg.JOYP] = 
         0b00100000 | (this.down << 3) | (this.up << 2) | (this.left << 1) | this.right;
-      this.m.ram[Reg.IF] |= 0b1000;
+      //this.m.ram[Reg.IF] |= 0b1000;
     }
     else {
-      this.m.ram[Reg.JOYP] |= 0b1111; 
+      //this.m.ram[Reg.JOYP] |= 0b1111; 
     }
   }
 

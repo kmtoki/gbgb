@@ -569,8 +569,8 @@ export default class PPU {
     this.renderDisplay();
 
     // debug
-    //this.renderWindow();
-    //this.renderOAM();    
+    this.renderWindow();
+    this.renderOAM();    
   }
 
   compareLY() {

@@ -14,7 +14,8 @@ export default class APU {
     for (let i = 0; i <= 0xf; i++) {
       let a = this.m.ram[Reg.WPR + i] >> 4 & 0xf;
       let b = this.m.ram[Reg.WPR + i] & 0xf;
-      this.buffer.push(a,b);
+      this.buffer[i * 2] = a;
+      this.buffer[i * 2 + 1] = b;
     }
   }
 }

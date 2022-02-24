@@ -1,5 +1,5 @@
 import Gameboy from "./gameboy.ts";
-import ROM from "./rom.ts";
+import ROM from "./rom2.ts";
 import { Reg, toBin } from "./utils.ts";
 
 class WebView {
@@ -234,7 +234,7 @@ class WebView {
 
   speaker(t?: number) {
     t = t == undefined ? this.speaker_timer : t;
-    if (this.speaker_id != 1) {
+    if (this.speaker_id != 2) {
       clearInterval(this.speaker_id);
     }
 
@@ -242,14 +242,16 @@ class WebView {
     const p = 2 / 0xf;
     let buf = this.audio.createBuffer(2, 22050, 3000);
     let ch = buf.getChannelData(0);
-    let source = this.audio.createBufferSource()
-    source.buffer = buf;
 
-    //const makeNoise = () => {
+    const makeNoise = () => {
       for (let i = 0; i < this.gb.apu.buffer.length; i++) {
         ch[i] = 1 - p * this.gb.apu.buffer[i];
       }
-    //}
+    }
+
+
+    let source = this.audio.createBufferSource();
+    source.buffer = buf;
 
     //let gain = this.audio.createGain();
     //gain.gain.setValueAtTime(1,this.audio.currentTime);
@@ -258,7 +260,7 @@ class WebView {
     source.connect(this.audio.destination);
     source.start();
  
-    //this.speaker_id = setInterval(makeNoise, t * 10);
+    this.speaker_id = setInterval(makeNoise, t);
   }
 
   main(t?: number, c?: number) {
