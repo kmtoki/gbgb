@@ -164,6 +164,7 @@ export default class Gameboy {
     while (0 < i--) {
       this.cpu.execute();
       this.ppu.execute(this.cpu.clock);
+      //this.apu.execute();
       this.con.execute();
     }
     //this.printCPULog();
@@ -173,7 +174,6 @@ export default class Gameboy {
     while (true) {
       this.cpu.execute();
       this.ppu.execute(this.cpu.clock);
-      this.apu.execute();
       if (this.ppu.cycle == 0) {
         break;
       }

@@ -1,5 +1,5 @@
 import Gameboy from "./gameboy.ts";
-import ROM from "./rom2.ts";
+import ROM from "./rom.ts";
 import { Reg, toBin } from "./utils.ts";
 
 class WebView {
@@ -264,7 +264,7 @@ class WebView {
   main(t?: number, c?: number) {
     this.execute(t, c);
     this.render(t);
-    setTimeout(() => this.speaker(t), 1000);
+    //setTimeout(() => this.speaker(t), 1000);
   }
 
   stop() {

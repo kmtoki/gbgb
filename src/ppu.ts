@@ -569,8 +569,8 @@ export default class PPU {
     this.renderDisplay();
 
     // debug
-    this.renderWindow();
-    this.renderOAM();    
+    //this.renderWindow();
+    //this.renderOAM();    
   }
 
   compareLY() {
@@ -587,6 +587,9 @@ export default class PPU {
   execute(n: number) {
     const nn = n / 4;
     for (let i = 0; i < nn; i++) {
+      this.cycle++;
+      this.cycle_line++;
+
       if (this.cycle_line <= 20) {
         if (this.STAT_ModeFlag != 2 && this.STAT_OAMInterrupt == 1) {
           this.IF_LCD = 1;
@@ -600,13 +603,13 @@ export default class PPU {
         }
         this.STAT_ModeFlag = 0;
       } else if (this.cycle_line >= 114) {
-        this.cycle_line = 0; //this.cycle_line - 114;
+        this.cycle_line = 0;
         this.LY += 1;
         this.compareLY();
         if (this.LY == 144) {
           this.IF_VBlank = 1;
           this.STAT_ModeFlag = 1;
-          this.render();
+          //this.render();
         }
       }
 
@@ -621,9 +624,6 @@ export default class PPU {
         this.cycle_line = 0;
         this.LY = 0;
       }
-
-      this.cycle++;
-      this.cycle_line++;
     }
   }
 }
