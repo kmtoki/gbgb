@@ -3,6 +3,7 @@ import MBC, { MBC1, MBC3 } from "./mbc.ts";
 import Cartridge from "./cartridge.ts";
 import CPU, { CPULog } from "./cpu.ts";
 import PPU from "./ppu.ts";
+import APU from "./apu.ts";
 import Controller from "./controller.ts";
 
 const h = (a: number): string => toHex(a);
@@ -13,6 +14,7 @@ export default class Gameboy {
   mbc: MBC;
   cpu: CPU;
   ppu: PPU;
+  apu: APU;
   con: Controller;
 
   constructor(rom: Uint8Array) {
@@ -34,11 +36,12 @@ export default class Gameboy {
         break;
     }
 
-    //this.mbc = new MBC1(this.cartridge);
-    this.con = new Controller(this.mbc);
-    this.ppu = new PPU(this.mbc);
     this.cpu = new CPU(this.mbc);
     this.cpu.pc = 0x100; // cartridge entry point
+
+    this.ppu = new PPU(this.mbc);
+    this.apu = new APU(this.mbc);
+    this.con = new Controller(this.mbc);
 
     let td = new TextDecoder();
     console.log(
@@ -170,6 +173,7 @@ export default class Gameboy {
     while (true) {
       this.cpu.execute();
       this.ppu.execute(this.cpu.clock);
+      this.apu.execute();
       if (this.ppu.cycle == 0) {
         break;
       }

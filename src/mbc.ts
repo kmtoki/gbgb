@@ -93,7 +93,7 @@ export class MBC1 implements MBC {
 
   write(i: U16, v: U8) {
     //if (i == 0xc008) { // link y pos
-    //  console.log("0xc008:", toHex(this.ram[i]), "<-", v);
+    //  console.log("0xc008", toHex(this.ram[i]), v, "", this.ram[Reg.LY], this.ram[Reg.LYC]);
     //}
 
     if (i >= 0x0000 && i <= 0x1fff) {

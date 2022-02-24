@@ -382,10 +382,11 @@ export default class PPU {
       const sprite = this.LCDC_BG_WindowTileDataSelect == 0
         ? this.getSprite(0x9000, toI8(sp_addr))
         : this.getSprite(0x8000, sp_addr);
+
       for (let yy = 0; yy < 8; yy++) {
         for (let xx = 0; xx < 8; xx++) {
-          let yyy = y + yy;
-          let xxx = x + xx;
+          const yyy = y + yy;
+          const xxx = x + xx;
           this.bg_buffer[yyy][xxx] = sprite[yy][xx];
         }
       }
@@ -400,8 +401,8 @@ export default class PPU {
 
   renderWindow() {
     if (this.LCDC_WindowDisplayEnable == 1) {
-      let wy = this.SCY + this.WY;
-      let wx = this.SCX + this.WX - 6;
+      let wy = this.WY;
+      let wx = this.WX - 6;
       let w_addr = this.LCDC_WindowTileMapDisplaySelect == 0 ? 0x9800 : 0x9c00;
       for (let i = 1; i <= 1024; i++) {
         let sp_addr = this.m.ram[w_addr++];
@@ -461,8 +462,8 @@ export default class PPU {
         }
         let oy = oam[0] - 16 < 0 ? oam[0] : oam[0] - 16;
         let ox = oam[1] - 8 < 0 ? oam[1] : oam[1] - 8;
-        oy += this.SCY;
-        ox += this.SCX;
+        //oy += this.SCY;
+        //ox += this.SCX;
         for (let y = 0; y < sprite.length; y++) {
           for (let x = 0; x < sprite[y].length; x++) {
             if (sprite[y][x] != 0) {
@@ -541,12 +542,12 @@ export default class PPU {
           sprite = sprite.map((ss) => ss.reverse());
         }
         if ((oam[3] >> 7 & 1) == 1) { // Obj or BG Priority. 0 = Obj. 1 = BG
-          //for (let y = 0; y < sprite.length; y++) {
-          //   for (let x = 0; x < sprite[y].length; x++) {
-          //     this.buffer[oam[0]+y][oam[1]+x] = 0;
-          //   }
-          //}
-          //continue;
+          for (let y = 0; y < sprite.length; y++) {
+             for (let x = 0; x < sprite[y].length; x++) {
+               this.buffer[oam[0]+y][oam[1]+x] = 0;
+             }
+          }
+          continue;
         }
         let oy = oam[0] - 16 < 0 ? oam[0] : oam[0] - 16;
         let ox = oam[1] - 8 < 0 ? oam[1] : oam[1] - 8;
@@ -584,42 +585,45 @@ export default class PPU {
   }
 
   execute(n: number) {
-    n = n / 4; // ppu cycle = cpu instruction clock / 4
-    this.cycle += n;
-    this.cycle_line += n;
+    const nn = n / 4;
+    for (let i = 0; i < nn; i++) {
+      if (this.cycle_line <= 20) {
+        if (this.STAT_ModeFlag != 2 && this.STAT_OAMInterrupt == 1) {
+          this.IF_LCD = 1;
+        }
+        this.STAT_ModeFlag = 2;
+      } else if (this.cycle_line <= 63) {
+        this.STAT_ModeFlag = 3;
+      } else if (this.cycle_line <= 113) {
+        if (this.STAT_ModeFlag != 0 && this.STAT_HBlankInterrupt == 1) {
+          this.IF_LCD = 1;
+        }
+        this.STAT_ModeFlag = 0;
+      } else if (this.cycle_line >= 114) {
+        this.cycle_line = 0; //this.cycle_line - 114;
+        this.LY += 1;
+        this.compareLY();
+        if (this.LY == 144) {
+          this.IF_VBlank = 1;
+          this.STAT_ModeFlag = 1;
+          this.render();
+        }
+      }
 
-    if (this.cycle_line <= 20) {
-      if (this.STAT_ModeFlag != 2 && this.STAT_OAMInterrupt == 1) {
-        this.IF_LCD = 1;
-      }
-      this.STAT_ModeFlag = 2;
-    } else if (this.cycle_line <= 63) {
-      this.STAT_ModeFlag = 3;
-    } else if (this.cycle_line <= 113) {
-      if (this.STAT_ModeFlag != 0 && this.STAT_HBlankInterrupt == 1) {
-        this.IF_LCD = 1;
-      }
-      this.STAT_ModeFlag = 0;
-    } else if (this.cycle_line >= 114) {
-      this.cycle_line = 0; //this.cycle_line - 114;
-      this.LY += 1;
-      this.compareLY();
-      if (this.LY == 144) {
-        this.IF_VBlank = 1;
+      if (this.cycle >= 16416 && this.cycle <= 17556) {
+        if (this.STAT_ModeFlag != 1 && this.STAT_VBlankInterrupt == 1) {
+          this.IF_LCD = 1;
+        }
         this.STAT_ModeFlag = 1;
-        this.render();
+      } else if (this.cycle >= 17557) {
+        this.render(); // ????
+        this.cycle = 0;
+        this.cycle_line = 0;
+        this.LY = 0;
       }
-    }
 
-    if (this.cycle >= 16416 && this.cycle <= 17556) {
-      if (this.STAT_ModeFlag != 1 && this.STAT_VBlankInterrupt == 1) {
-        this.IF_LCD = 1;
-      }
-      this.STAT_ModeFlag = 1;
-    } else if (this.cycle >= 17557) {
-      this.cycle = 0;
-      this.cycle_line = 0;
-      this.LY = 0;
+      this.cycle++;
+      this.cycle_line++;
     }
   }
 }

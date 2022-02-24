@@ -4,14 +4,21 @@ import { Reg, toBin } from "./utils.ts";
 
 class WebView {
   gb: Gameboy;
+
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
+  audio: AudioContext;
+
   execute_clock: number;
   execute_timer: number;
   execute_timer_acc: number;
   render_timer: number;
+  speaker_timer: number;
+
   execute_id: number;
   render_id: number;
+  speaker_id: number;
+
   buffer: number[][];
 
   constructor(gb: Gameboy) {
@@ -25,13 +32,17 @@ class WebView {
     this.ctx.fillStyle = "black";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
+    this.audio = new AudioContext();
+
     this.execute_clock = 4194304 / (60 * 4); 
     this.execute_timer = 1000 / 60;
     this.execute_timer_acc = 1;
     this.render_timer = 1000 / 60;
-    //this.render_timer = 100;
+    this.speaker_timer = 1000 / 60;
+
     this.execute_id = 0;
     this.render_id = 1;
+    this.speaker_id = 2;
 
     this.buffer = new Array(1024);
     for (let i = 0; i < this.buffer.length; i++) {
@@ -221,14 +232,45 @@ class WebView {
     this.render_id = setInterval(() => this.draw(), t);
   }
 
+  speaker(t?: number) {
+    t = t == undefined ? this.speaker_timer : t;
+    if (this.speaker_id != 1) {
+      clearInterval(this.speaker_id);
+    }
+
+    //const freq = 65536 / (2048 - ((this.gb.mbc.ram[Reg.NR34] & 0b111) <<  8 | this.gb.mbc.ram[Reg.NR33]));
+    const p = 2 / 0xf;
+    let buf = this.audio.createBuffer(2, 22050, 3000);
+    let ch = buf.getChannelData(0);
+    let source = this.audio.createBufferSource()
+    source.buffer = buf;
+
+    //const makeNoise = () => {
+      for (let i = 0; i < this.gb.apu.buffer.length; i++) {
+        ch[i] = 1 - p * this.gb.apu.buffer[i];
+      }
+    //}
+
+    //let gain = this.audio.createGain();
+    //gain.gain.setValueAtTime(1,this.audio.currentTime);
+    //source.connect(gain);
+    //gain.connect(this.audio.destination);
+    source.connect(this.audio.destination);
+    source.start();
+ 
+    //this.speaker_id = setInterval(makeNoise, t * 10);
+  }
+
   main(t?: number, c?: number) {
     this.execute(t, c);
     this.render(t);
+    setTimeout(() => this.speaker(t), 1000);
   }
 
   stop() {
     clearInterval(this.execute_id);
     clearInterval(this.render_id);
+    clearInterval(this.speaker_id);
   }
 }
 
