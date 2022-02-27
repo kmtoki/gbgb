@@ -64,10 +64,6 @@ export default class CPU {
   e: U8;
   h: U8;
   l: U8;
-  //zero: U8;
-  //negative: U8;
-  //half: U8;
-  //carry: U8;
   sp: U16;
   pc: U16;
   ime: number;
